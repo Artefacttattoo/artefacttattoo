@@ -1,0 +1,6 @@
+.DS_Store
+node_modules/
+.claude/
+artefacttattoo/
+*.pyc
+__pycache__/

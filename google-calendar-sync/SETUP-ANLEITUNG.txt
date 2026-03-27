@@ -1,0 +1,152 @@
+=============================================
+  ARTEFACT BOOKING ↔ GOOGLE CALENDAR SYNC
+  Setup-Anleitung (5 Minuten)
+=============================================
+
+WAS MACHT DAS SCRIPT?
+─────────────────────
+• Prüft jede Stunde eure 2 Google Kalender (Achern + Weil)
+• Erkennt Künstlernamen in Calendar-Event-Titeln
+• Wenn ein Künstler > halben Tag gebucht ist → ROT in der App
+• Wenn er frei ist oder < halben Tag → bleibt GRÜN
+• Liest Umsatz-Daten aus Event-Beschreibungen (Gesamtpreis + Anzahlung)
+• Zeigt monatlichen Umsatz pro Standort in der App an
+• Zeitraum: 2 Monate zurück + 3 Monate voraus
+• Vergangene Monate = realisierter Umsatz, Zukunft = erwarteter Umsatz
+
+BEISPIEL:
+  Calendar-Event: "Max Mustermann 10:00-16:00" (6h)
+  → Arbeitstag ist 9h, Hälfte = 4.5h
+  → 6h > 4.5h → Max wird ROT (unavailable) in der App
+
+
+SCHRITT 1: Kalender-IDs finden
+────────────────────────────────
+1. Öffne Google Calendar (calendar.google.com)
+2. Links bei "Meine Kalender" → 3 Punkte (⋮) neben "Achern"
+3. Klicke "Einstellungen und Freigabe"
+4. Scrolle zu "Kalender integrieren"
+5. Kopiere die "Kalender-ID"
+   (sieht aus wie: abc123xyz@group.calendar.google.com)
+6. Mach das Gleiche für den "Weil am Rhein" Kalender
+
+
+SCHRITT 2: Script erstellen
+────────────────────────────
+1. Öffne https://script.google.com
+2. Klicke "+ Neues Projekt"
+3. Oben links: Benenne es "Artefact Booking Sync"
+4. Lösche den bestehenden Code
+5. Öffne die Datei "Code.gs" (liegt im selben Ordner wie diese Anleitung)
+6. Kopiere den GESAMTEN Inhalt → Einfügen im Script Editor
+
+
+SCHRITT 3: Kalender-IDs eintragen
+──────────────────────────────────
+Im Code oben bei der Konfiguration, ersetze:
+
+  KALENDER_ID_ACHERN: 'HIER_ACHERN_KALENDER_ID_EINTRAGEN@group.calendar.google.com',
+  KALENDER_ID_WEIL: 'HIER_WEIL_KALENDER_ID_EINTRAGEN@group.calendar.google.com',
+
+mit euren echten Kalender-IDs:
+
+  KALENDER_ID_ACHERN: 'abc123@group.calendar.google.com',
+  KALENDER_ID_WEIL: 'xyz789@group.calendar.google.com',
+
+Speichern (Strg+S)
+
+
+SCHRITT 4: Starten
+───────────────────
+1. Im Dropdown oben "setupSync" auswählen
+2. ▶ Play-Button klicken
+3. Google fragt nach Berechtigungen:
+   → "Erweitert" → "Zu Artefact Booking Sync (unsicher)"
+   → "Zulassen"
+4. Warte bis es durchgelaufen ist
+5. Unten im Log siehst du das Ergebnis
+
+FERTIG! Der Sync läuft jetzt automatisch jede Stunde.
+
+
+=============================================
+  KONFIGURATION (Optional anpassen)
+=============================================
+
+Im Code ganz oben bei CONFIG:
+
+WORK_DAY_START / WORK_DAY_END:
+  Standard: 10:00 - 19:00 (9h Arbeitstag)
+  Halber Tag = 4.5h
+  → Künstler mit > 4.5h Terminen → ROT
+
+SYNC_DAYS_AHEAD:
+  Standard: 60 Tage
+  Wie weit in die Zukunft das Script prüft
+
+
+=============================================
+  WIE FUNKTIONIERT DIE NAMEN-ERKENNUNG?
+=============================================
+
+Das Script sucht in jedem Calendar-Event-Titel nach
+Künstlernamen aus der App. Es erkennt:
+
+✓ Vollständigen Namen: "Max Mustermann Termin"
+✓ Nur Vorname: "Termin mit Max"
+✓ Nur Nachname: "Mustermann 14:00"
+✓ Groß/Kleinschreibung egal: "max", "MAX", "Max"
+✓ Name irgendwo im Titel: "10:00 Piercing Max Mustermann Walk-In"
+
+TIPP: Benennt eure Calendar-Events so:
+  "Max Mustermann" oder "Max 10-16" oder "Mustermann ganztags"
+
+
+=============================================
+  NÜTZLICHE FUNKTIONEN
+=============================================
+
+Im Script Editor → Dropdown → Funktion auswählen → ▶ Play:
+
+debugCalendar()
+  Zeigt was das Script in euren Kalendern findet
+  Welche Künstler erkannt werden
+  Wie viele Stunden berechnet werden
+  → Super zum Testen!
+
+checkStatus()
+  Übersicht: Wie viele Bookings, manuell vs. automatisch
+
+removeAllCalendarSyncBookings()
+  Löscht alle automatisch erstellten "unavailable" Buchungen
+  → Wenn mal was schiefgeht, damit alles zurücksetzen
+
+stopSync()
+  Stoppt den automatischen stündlichen Sync
+
+runSync()
+  Einmaliger manueller Sync (zum Testen)
+
+
+=============================================
+  FEHLERBEHEBUNG
+=============================================
+
+"Kalender nicht gefunden"
+  → Kalender-ID falsch kopiert?
+  → Du musst Zugriff auf den Kalender haben
+  → Führe debugCalendar() aus zum Testen
+
+"Künstler wird nicht erkannt"
+  → Name muss in der App als Artist existieren
+  → Name muss im Calendar-Event-Titel stehen
+  → Mindestens 4 Buchstaben für Einzelnamen
+  → Führe debugCalendar() aus → zeigt was erkannt wird
+
+"Zu viele Künstler auf ROT"
+  → Arbeitszeit anpassen (WORK_DAY_START/END)
+  → Prüfe ob Events richtig benannt sind
+
+"Manuell gesetzte Buchung wird überschrieben"
+  → Passiert NICHT! Manuelle Buchungen haben immer Vorrang.
+  → Nur leere Tage werden vom Script gesetzt.

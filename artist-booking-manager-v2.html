@@ -1,0 +1,1784 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Artist Booking Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<style>
+:root {
+  --bg-root: #080d19;
+  --bg-card: #0f172a;
+  --bg-input: #1e293b;
+  --bg-row-even: #0b1120;
+  --bg-row-odd: #0f172a;
+  --bg-hover: #162040;
+  --border: #1e293b;
+  --border-light: #151d30;
+  --text: #e2e8f0;
+  --text-dim: #94a3b8;
+  --text-muted: #64748b;
+  --text-faint: #475569;
+  --text-ghost: #334155;
+  --accent: #60a5fa;
+  --accent-purple: #a78bfa;
+  --green: #22c55e;
+  --yellow: #eab308;
+  --red: #ef4444;
+  --orange: #f97316;
+  --blue: #3b82f6;
+  --radius: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body { font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg-root); color: var(--text); -webkit-font-smoothing: antialiased; }
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg-root); }
+::-webkit-scrollbar-thumb { background: var(--bg-input); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-faint); }
+#app { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+.header { padding: 14px 20px 0; background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-root) 100%); flex-shrink: 0; }
+.header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+.logo { font-size: 21px; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--accent-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.subtitle { color: var(--text-ghost); font-size: 11px; margin-top: 1px; }
+.stats { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.stat { background: var(--bg-row-even); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 14px; flex: 1 1 90px; }
+.stat-label { color: var(--text-ghost); font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+.stat-value { font-size: 20px; font-weight: 700; margin-top: 1px; }
+.tabs { display: flex; gap: 0; overflow-x: auto; }
+.tab { background: transparent; color: var(--text-faint); border: 1px solid transparent; border-bottom: 1px solid var(--border); border-radius: 8px 8px 0 0; padding: 8px 18px; cursor: pointer; font-size: 13px; font-weight: 600; margin-bottom: -1px; font-family: inherit; transition: all 0.15s; white-space: nowrap; }
+.tab.active { background: var(--bg-card); color: var(--accent); border: 1px solid var(--border); border-bottom-color: var(--bg-card); }
+.tab-fill { flex: 1; border-bottom: 1px solid var(--border); }
+.content { background: var(--bg-card); border: 1px solid var(--border); border-top: none; margin: 0 20px; border-radius: 0 0 10px 10px; padding: 14px 16px 16px; flex: 1; overflow: auto; min-height: 0; }
+.month-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
+.months { display: flex; gap: 3px; flex-wrap: wrap; }
+.month-btn { background: var(--bg-input); color: var(--text-faint); border: none; border-radius: 5px; padding: 5px 8px; cursor: pointer; font-size: 11px; font-weight: 600; min-width: 34px; font-family: inherit; transition: all 0.12s; }
+.month-btn.active { background: var(--blue); color: #fff; }
+.filter-group { display: flex; gap: 4px; align-items: center; }
+.filter-btn { background: var(--bg-input); color: var(--text-faint); border: 1px solid var(--text-ghost); border-radius: 5px; padding: 3px 10px; cursor: pointer; font-size: 10px; font-weight: 600; font-family: inherit; }
+.filter-btn.active { background: var(--bg-hover); color: var(--accent); border-color: rgba(37,99,235,0.2); }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-dim); }
+.legend-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+.grid-wrapper { overflow: auto; border-radius: var(--radius); border: 1px solid var(--border); }
+.grid { display: grid; font-size: 11px; }
+.grid-header { background: var(--bg-root); padding: 6px 0; text-align: center; font-weight: 500; font-size: 10px; color: var(--text-faint); border-bottom: 2px solid var(--border); }
+.grid-header.weekend { color: var(--yellow); font-weight: 700; }
+.grid-header.name-col { padding: 7px 10px; font-size: 13px; font-weight: 700; color: var(--text); text-align: left; position: sticky; left: 0; z-index: 2; }
+.artist-name { padding: 5px 10px; color: var(--text); cursor: pointer; display: flex; align-items: center; gap: 5px; position: sticky; left: 0; z-index: 1; font-weight: 500; font-size: 12px; border-bottom: 1px solid var(--border-light); transition: background 0.15s; }
+.artist-name:hover { background: var(--bg-hover) !important; }
+.artist-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.cell { border-bottom: 1px solid var(--border-light); border-right: 1px solid #0a0f1d; cursor: pointer; min-height: 22px; transition: opacity 0.1s; }
+.cell.blocked { cursor: not-allowed; opacity: 0.45; background: repeating-linear-gradient(45deg, var(--text-ghost), var(--text-ghost) 2px, transparent 2px, transparent 4px) !important; }
+.cell.confirmed { background: var(--green); }
+.cell.tentative { background: var(--yellow); }
+.cell.unavailable { background: var(--red); }
+.hint { margin-top: 8px; color: var(--text-ghost); font-size: 9px; }
+.pipeline-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px; }
+.pipeline-title { font-size: 18px; font-weight: 700; }
+.pipeline-sub { color: var(--text-faint); font-size: 12px; margin-top: 2px; }
+.pipeline-board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+@media (max-width: 900px) { .pipeline-board { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 520px) { .pipeline-board { grid-template-columns: 1fr; } }
+.phase-col { background: var(--bg-row-even); border-radius: 10px; padding: 10px; border: 1px solid var(--border); transition: background 0.15s; min-height: 200px; }
+.phase-col.dragover { background: var(--bg-hover); }
+.phase-header { display: flex; align-items: center; gap: 7px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.phase-icon { font-size: 16px; }
+.phase-label { font-size: 12px; font-weight: 700; }
+.phase-desc { color: var(--text-ghost); font-size: 9px; }
+.phase-count { margin-left: auto; padding: 1px 7px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+.candidate-card { background: var(--bg-card); border-radius: 8px; padding: 9px 11px; margin-bottom: 6px; border: 1px solid var(--border); cursor: grab; transition: border-color 0.15s, transform 0.1s; }
+.candidate-card:hover { transform: translateY(-1px); }
+.candidate-card.dragging { opacity: 0.5; }
+.candidate-name { color: var(--text); font-size: 12px; font-weight: 600; }
+.candidate-nat { color: var(--text-faint); font-size: 9px; background: var(--bg-input); padding: 1px 5px; border-radius: 4px; }
+.candidate-spec { color: var(--text-muted); font-size: 10px; margin-top: 2px; }
+.candidate-notes { color: var(--text-ghost); font-size: 9px; margin-top: 3px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.convert-btn { width: 100%; margin-top: 8px; padding: 5px 0; background: rgba(34,197,94,0.13); border: 1px solid rgba(34,197,94,0.27); color: var(--green); border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 700; font-family: inherit; transition: background 0.15s; }
+.convert-btn:hover { background: rgba(34,197,94,0.22); }
+.phase-empty { color: var(--border); font-size: 10px; text-align: center; padding: 16px 0; }
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); opacity: 0; transition: opacity 0.15s; }
+.overlay.show { opacity: 1; }
+.modal { background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 25px 60px rgba(0,0,0,0.5); display: flex; flex-direction: column; max-height: 88vh; transform: translateY(10px); transition: transform 0.15s; }
+.overlay.show .modal { transform: none; }
+.modal-header { padding: 18px 22px 14px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-start; }
+.modal-title { font-size: 20px; font-weight: 700; }
+.modal-close { background: none; border: none; color: var(--text-faint); font-size: 20px; cursor: pointer; }
+.modal-tabs { display: flex; border-bottom: 1px solid var(--border); }
+.modal-tab { background: none; border: none; padding: 9px 18px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; border-bottom: 2px solid transparent; color: var(--text-faint); transition: all 0.12s; }
+.modal-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.modal-body { overflow: auto; flex: 1; padding: 18px 22px; }
+.modal-footer { padding: 14px 22px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 520px) { .form-grid { grid-template-columns: 1fr; } }
+.field label { display: block; color: var(--text-muted); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.field input, .field select, .field textarea { width: 100%; background: var(--bg-input); border: 1px solid var(--text-ghost); border-radius: 6px; padding: 8px 12px; color: var(--text); font-size: 13px; font-family: inherit; outline: none; transition: border-color 0.15s; }
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); }
+.field textarea { resize: vertical; min-height: 60px; }
+.btn { border: none; border-radius: var(--radius); padding: 10px 20px; cursor: pointer; font-size: 13px; font-weight: 600; font-family: inherit; transition: all 0.12s; }
+.btn-primary { background: linear-gradient(135deg, var(--blue), #6366f1); color: #fff; box-shadow: 0 2px 12px rgba(59,130,246,0.25); }
+.btn-primary:hover { box-shadow: 0 4px 16px rgba(59,130,246,0.35); }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-secondary { background: var(--bg-input); color: var(--text-dim); }
+.btn-sm { padding: 6px 14px; font-size: 12px; }
+.btn-danger { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+.status-group { display: flex; gap: 6px; }
+.status-btn { flex: 1; padding: 7px 4px; border-radius: 6px; cursor: pointer; border: 2px solid var(--bg-input); background: var(--bg-input); font-size: 11px; font-weight: 600; font-family: inherit; transition: all 0.12s; }
+.status-btn.active { border-width: 2px; }
+.doc-row { display: flex; align-items: center; gap: 8px; background: var(--bg-input); border-radius: 6px; padding: 7px 12px; margin-bottom: 4px; }
+.doc-name { color: var(--text); font-size: 12px; font-weight: 600; }
+.doc-link { color: var(--accent); font-size: 10px; text-decoration: none; margin-left: 8px; }
+.doc-remove { background: none; border: none; color: var(--red); cursor: pointer; font-size: 16px; }
+.doc-add-row { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+.doc-add-row input { flex: 1; min-width: 100px; background: var(--bg-input); border: 1px solid var(--text-ghost); border-radius: 6px; padding: 8px 12px; color: var(--text); font-size: 13px; font-family: inherit; outline: none; }
+.history-row { display: flex; align-items: center; gap: 10px; background: var(--bg-input); border-radius: 6px; padding: 8px 12px; margin-bottom: 4px; }
+.history-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+.history-text { flex: 1; font-size: 12px; }
+.history-badge { padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; }
+input[type=range] { width: 100%; accent-color: var(--blue); }
+.alert { border-radius: var(--radius); padding: 9px 12px; margin-bottom: 14px; font-size: 12px; }
+.alert-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: #fca5a5; }
+.alert-warning { background: rgba(234,179,8,0.1); border: 1px solid rgba(234,179,8,0.2); color: #fde68a; }
+.alert-success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); color: #86efac; }
+.toast { position: fixed; top: 20px; right: 20px; z-index: 2000; padding: 10px 20px; border-radius: var(--radius); font-size: 13px; font-weight: 500; box-shadow: 0 4px 20px rgba(0,0,0,0.4); color: #fff; animation: toastIn 0.2s ease; }
+.toast-success { background: #166534; }
+.toast-error { background: #991b1b; }
+.toast-warning { background: #854d0e; }
+.toast-info { background: #1e3a5f; }
+@keyframes toastIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+.conn-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.conn-dot.online { background: var(--green); box-shadow: 0 0 6px rgba(34,197,94,0.5); }
+.conn-dot.offline { background: var(--red); }
+.loading { display: flex; align-items: center; justify-content: center; height: 100vh; color: var(--text-faint); font-size: 16px; }
+.spinner { width: 24px; height: 24px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 12px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.ws-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+.ws-left { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.ws-loc-tabs { display: flex; gap: 4px; }
+.ws-loc-tab { background: var(--bg-input); color: var(--text-faint); border: 1px solid var(--text-ghost); border-radius: 6px; padding: 5px 14px; cursor: pointer; font-size: 12px; font-weight: 600; font-family: inherit; transition: all 0.12s; }
+.ws-loc-tab.active { background: rgba(59,130,246,0.15); color: var(--accent); border-color: rgba(59,130,246,0.35); }
+.ws-week-nav { display: flex; align-items: center; gap: 6px; }
+.ws-week-label { font-size: 12px; font-weight: 600; color: var(--text); min-width: 130px; text-align: center; }
+.ws-nav-btn { background: var(--bg-input); border: 1px solid var(--border); border-radius: 6px; color: var(--text-dim); cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-family: inherit; font-size: 14px; transition: all 0.12s; }
+.ws-nav-btn:hover { background: var(--bg-hover); color: var(--text); }
+.ws-today-btn { background: var(--bg-input); border: 1px solid var(--border); border-radius: 6px; color: var(--text-muted); cursor: pointer; height: 28px; padding: 0 10px; font-size: 10px; font-weight: 600; font-family: inherit; transition: all 0.12s; }
+.ws-today-btn:hover { color: var(--accent); }
+.ws-legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 10px; }
+.ws-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-dim); }
+.ws-legend-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+.ws-grid-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); }
+.ws-grid { display: grid; font-size: 11px; min-width: 480px; }
+.ws-header-cell { background: var(--bg-root); padding: 8px 4px; text-align: center; font-weight: 600; font-size: 10px; color: var(--text-faint); border-bottom: 2px solid var(--border); line-height: 1.4; }
+.ws-header-cell.name-col { text-align: left; padding: 8px 10px; font-size: 11px; position: sticky; left: 0; z-index: 2; }
+.ws-header-cell.ws-today-hdr { color: var(--accent); }
+.ws-name-cell { padding: 0 10px; font-size: 12px; font-weight: 500; color: var(--text); display: flex; align-items: center; gap: 6px; border-bottom: 1px solid var(--border-light); cursor: pointer; transition: background 0.12s; position: sticky; left: 0; z-index: 1; min-height: 44px; }
+.ws-name-cell:hover { background: var(--bg-hover) !important; }
+.ws-cell { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 44px; cursor: pointer; border-bottom: 1px solid var(--border-light); transition: filter 0.12s, transform 0.1s; }
+.ws-cell:hover { filter: brightness(1.2); transform: scale(0.96); }
+.ws-cell.ws-past { cursor: default; opacity: 0.4; }
+.ws-cell.ws-past:hover { filter: none; transform: none; }
+.ws-cell.ws-today-col { border-left: 2px solid rgba(96,165,250,0.5) !important; }
+.ws-totals-row-cell { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 32px; border-top: 2px solid var(--border); border-bottom: none; border-left: 1px solid var(--border-light); background: var(--bg-root); font-size: 11px; font-weight: 700; }
+.ws-totals-row-cell.warn { background: rgba(239,68,68,0.06); }
+.ws-totals-label { padding: 0 10px; font-size: 10px; font-weight: 600; color: var(--text-ghost); border-top: 2px solid var(--border); background: var(--bg-root); display: flex; align-items: center; min-height: 32px; position: sticky; left: 0; z-index: 1; }
+.ws-couple-badge { font-size: 9px; background: rgba(167,139,250,0.18); color: #a78bfa; border-radius: 4px; padding: 1px 5px; flex-shrink: 0; }
+.ws-summary { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.ws-summary-card { background: var(--bg-row-even); border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; flex: 1 1 90px; }
+.ws-summary-label { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-ghost); }
+.ws-summary-val { font-size: 18px; font-weight: 700; margin-top: 2px; }
+.ws-status-option { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 8px; cursor: pointer; transition: background 0.12s; border: 2px solid transparent; margin-bottom: 6px; }
+.ws-status-option:hover { background: var(--bg-hover); }
+.ws-status-option.ws-sel { background: var(--bg-hover); }
+.ws-status-icon { width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.ws-empty { grid-column: 1/-1; padding: 40px 20px; text-align: center; color: var(--text-ghost); font-size: 13px; line-height: 1.8; }
+
+/* ===== MODULE 3: TODO ===== */
+.todo-dashboard { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.todo-stat { background: var(--bg-row-even); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 18px; flex: 1 1 110px; }
+.todo-stat-label { color: var(--text-ghost); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+.todo-stat-val { font-size: 22px; font-weight: 700; margin-top: 2px; }
+.todo-progress { height: 6px; background: var(--bg-input); border-radius: 3px; margin-top: 6px; overflow: hidden; }
+.todo-progress-bar { height: 100%; background: var(--green); border-radius: 3px; transition: width 0.3s; }
+.todo-filters { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+.todo-filters select, .todo-filters input[type=text] { background: var(--bg-input); border: 1px solid var(--text-ghost); border-radius: 6px; padding: 7px 12px; color: var(--text); font-size: 13px; font-family: inherit; outline: none; }
+.todo-filters select:focus, .todo-filters input:focus { border-color: var(--accent); }
+.todo-filters input[type=text] { min-width: 160px; }
+.todo-count { font-size: 12px; color: var(--text-faint); margin-left: auto; }
+.todo-check { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-faint); cursor: pointer; }
+.todo-check input { accent-color: var(--accent); cursor: pointer; width: 15px; height: 15px; }
+.todo-table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); }
+.todo-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 800px; }
+.todo-table th { background: var(--bg-root); padding: 12px 14px; text-align: left; font-weight: 600; font-size: 12px; color: var(--text-faint); border-bottom: 2px solid var(--border); cursor: pointer; user-select: none; white-space: nowrap; }
+.todo-table th:hover { color: var(--accent); }
+.todo-table th .sort-arrow { margin-left: 3px; font-size: 9px; }
+.todo-table td { padding: 12px 14px; border-bottom: 1px solid var(--border-light); vertical-align: middle; line-height: 1.5; }
+.todo-table tr:nth-child(even) td { background: var(--bg-row-even); }
+.todo-table tr:nth-child(odd) td { background: var(--bg-row-odd); }
+.todo-table tr:hover td { background: var(--bg-hover) !important; }
+.todo-table tr.todo-done td { opacity: 0.35; text-decoration: line-through; }
+.todo-prio { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; display: inline-block; min-width: 28px; text-align: center; }
+.todo-prio-A { background: rgba(239,68,68,0.25); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+.todo-prio-B { background: rgba(249,115,22,0.25); color: #fdba74; border: 1px solid rgba(249,115,22,0.3); }
+.todo-prio-C { background: rgba(234,179,8,0.25); color: #fde68a; border: 1px solid rgba(234,179,8,0.3); }
+.todo-prio-D { background: rgba(59,130,246,0.25); color: #93c5fd; border: 1px solid rgba(59,130,246,0.3); }
+.todo-prio-E { background: rgba(100,116,139,0.25); color: #94a3b8; border: 1px solid rgba(100,116,139,0.3); }
+.todo-prio-P { background: rgba(167,139,250,0.25); color: #c4b5fd; border: 1px solid rgba(167,139,250,0.3); }
+.todo-status { padding: 5px 14px; border-radius: 12px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; font-family: inherit; transition: all 0.15s; }
+.todo-status:hover { filter: brightness(1.2); transform: scale(1.05); }
+.todo-status-offen { background: rgba(239,68,68,0.2); color: #fca5a5; }
+.todo-status-arbeit { background: rgba(234,179,8,0.2); color: #fde68a; }
+.todo-status-erledigt { background: rgba(34,197,94,0.2); color: #86efac; }
+.todo-cell-edit { background: var(--bg-input); border: 1px solid var(--accent); border-radius: 4px; padding: 6px 10px; color: var(--text); font-size: 13px; font-family: inherit; outline: none; width: 100%; }
+.todo-actions { display: flex; gap: 6px; }
+.todo-action-btn { background: none; border: none; cursor: pointer; font-size: 16px; padding: 4px 6px; border-radius: 6px; transition: background 0.1s; }
+.todo-action-btn:hover { background: var(--bg-input); }
+.todo-empty { text-align: center; padding: 40px 20px; color: var(--text-ghost); }
+.todo-import-btn { background: rgba(96,165,250,0.12); border: 1px dashed rgba(96,165,250,0.4); color: var(--accent); border-radius: 8px; padding: 12px 24px; cursor: pointer; font-size: 13px; font-weight: 600; font-family: inherit; margin-top: 12px; transition: all 0.15s; }
+.todo-import-btn:hover { background: rgba(96,165,250,0.2); }
+.todo-notizen-cell { max-width: 220px; cursor: pointer; position: relative; }
+.todo-notizen-text { color: var(--text-muted); font-size: 12px; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.todo-notizen-text.expanded { white-space: normal; word-break: break-word; }
+.todo-deadline-overdue { color: #ef4444 !important; font-weight: 600; }
+.todo-deadline-soon { color: #eab308 !important; font-weight: 600; }
+.todo-deadline-ok { color: var(--text-dim); }
+.todo-aufgabe-cell { font-weight: 500; color: var(--text); cursor: pointer; max-width: 350px; }
+.todo-aufgabe-cell:hover { color: var(--accent); }
+.todo-kategorie-badge { background: rgba(96,165,250,0.1); color: var(--accent); padding: 3px 8px; border-radius: 5px; font-size: 11px; font-weight: 500; display: inline-block; }
+.todo-person-badge { color: var(--accent-purple); font-weight: 500; font-size: 12px; }
+
+/* ===== REVENUE SECTION ===== */
+.revenue-section { margin-bottom: 12px; }
+.revenue-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px; }
+.revenue-title { font-size: 13px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 6px; }
+.revenue-summary { font-size: 11px; color: var(--text-muted); }
+.revenue-summary b { color: var(--green); }
+.revenue-bar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+.revenue-card { background: var(--bg-row-even); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; min-width: 135px; flex-shrink: 0; cursor: pointer; transition: all 0.15s; position: relative; }
+.revenue-card:hover { transform: translateY(-2px); border-color: var(--text-ghost); }
+.revenue-card.rv-past { border-left: 3px solid var(--green); }
+.revenue-card.rv-current { border-left: 3px solid var(--accent); background: rgba(59,130,246,0.05); }
+.revenue-card.rv-future { border-left: 3px solid var(--yellow); }
+.revenue-card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.revenue-month-label { font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; }
+.revenue-type-badge { font-size: 8px; font-weight: 600; color: var(--text-ghost); text-transform: uppercase; letter-spacing: 0.05em; padding: 1px 6px; border-radius: 4px; }
+.rv-past .revenue-type-badge { background: rgba(34,197,94,0.1); color: var(--green); }
+.rv-current .revenue-type-badge { background: rgba(96,165,250,0.1); color: var(--accent); }
+.rv-future .revenue-type-badge { background: rgba(234,179,8,0.1); color: var(--yellow); }
+.revenue-amount { font-size: 20px; font-weight: 700; margin: 2px 0; }
+.rv-past .revenue-amount { color: var(--green); }
+.rv-current .revenue-amount { color: var(--accent); }
+.rv-future .revenue-amount { color: var(--yellow); }
+.revenue-detail-line { font-size: 10px; color: var(--text-muted); line-height: 1.6; }
+.revenue-events-count { font-size: 9px; color: var(--text-ghost); margin-top: 4px; }
+.revenue-empty { font-size: 9px; color: var(--text-ghost); margin-top: 6px; }
+
+/* ---- Finance Tab ---- */
+.fin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: .75rem; margin-bottom: 1.25rem; }
+.fin-card {
+  background: var(--bg-card); border-radius: .75rem; padding: 1rem;
+  cursor: pointer; transition: transform .15s, box-shadow .15s;
+  border: 1px solid rgba(96,165,250,.08);
+}
+.fin-card:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,.35); }
+.fin-card-label { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; color: #94a3b8; margin-bottom: .35rem; }
+.fin-card-value { font-size: 1.45rem; font-weight: 700; color: #f1f5f9; }
+.fin-card-sub { font-size: .72rem; color: #64748b; margin-top: .25rem; }
+.fin-badge { display: inline-block; padding: .15rem .55rem; border-radius: 999px; font-size: .68rem; font-weight: 600; }
+.fin-badge-green { background: rgba(34,197,94,.15); color: var(--green); }
+.fin-badge-yellow { background: rgba(234,179,8,.15); color: var(--yellow); }
+.fin-badge-red { background: rgba(239,68,68,.15); color: var(--red); }
+
+.fin-detail {
+  max-height: 0; overflow: hidden; transition: max-height .3s ease, padding .3s ease;
+  background: rgba(15,23,42,.6); border-radius: 0 0 .75rem .75rem; margin-top: -.25rem;
+  padding: 0 1rem; border: 1px solid rgba(96,165,250,.06); border-top: none;
+}
+.fin-detail.open { max-height: 600px; padding: .75rem 1rem; overflow-y: auto; }
+.fin-detail table { width: 100%; border-collapse: collapse; font-size: .78rem; }
+.fin-detail th { text-align: left; color: #64748b; font-weight: 500; padding: .3rem 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+.fin-detail td { padding: .3rem 0; color: #cbd5e1; }
+.fin-detail td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+
+.fin-section { margin-bottom: 1.5rem; }
+.fin-section-title { font-size: .85rem; font-weight: 600; color: #e2e8f0; margin-bottom: .65rem; display: flex; align-items: center; gap: .4rem; }
+
+.fin-compare { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+@media (max-width: 600px) { .fin-compare { grid-template-columns: 1fr; } }
+.fin-loc-card { background: var(--bg-card); border-radius: .75rem; padding: 1rem; border: 1px solid rgba(96,165,250,.06); }
+.fin-loc-name { font-size: .78rem; font-weight: 600; color: var(--accent); margin-bottom: .5rem; }
+.fin-loc-row { display: flex; justify-content: space-between; font-size: .75rem; color: #94a3b8; padding: .2rem 0; }
+.fin-loc-row span:last-child { color: #e2e8f0; font-weight: 500; }
+
+.fin-bars { display: flex; align-items: flex-end; gap: .5rem; height: 140px; padding: .5rem 0; }
+.fin-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: .25rem; }
+.fin-bar { width: 100%; border-radius: .35rem .35rem 0 0; min-height: 4px; transition: height .4s ease; }
+.fin-bar-label { font-size: .6rem; color: #64748b; text-align: center; white-space: nowrap; }
+.fin-bar-amount { font-size: .58rem; color: #94a3b8; text-align: center; }
+
+.fin-artist { display: flex; align-items: center; gap: .65rem; padding: .55rem .75rem; background: var(--bg-card); border-radius: .6rem; margin-bottom: .4rem; cursor: pointer; transition: background .15s; border: 1px solid rgba(96,165,250,.05); }
+.fin-artist:hover { background: rgba(15,23,42,.9); }
+.fin-artist-rank { width: 1.6rem; height: 1.6rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .7rem; font-weight: 700; flex-shrink: 0; }
+.fin-rank-1 { background: linear-gradient(135deg,#fbbf24,#f59e0b); color: #1a1a2e; }
+.fin-rank-2 { background: linear-gradient(135deg,#9ca3af,#6b7280); color: #fff; }
+.fin-rank-3 { background: linear-gradient(135deg,#d97706,#b45309); color: #fff; }
+.fin-rank-default { background: rgba(100,116,139,.2); color: #94a3b8; }
+.fin-artist-name { flex: 1; font-size: .8rem; color: #e2e8f0; }
+.fin-artist-rev { font-size: .82rem; font-weight: 600; color: var(--green); font-variant-numeric: tabular-nums; }
+.fin-artist-count { font-size: .68rem; color: #64748b; margin-left: .5rem; white-space: nowrap; }
+
+.fin-expense-row { margin-bottom: .45rem; }
+.fin-expense-label { display: flex; justify-content: space-between; font-size: .75rem; color: #94a3b8; margin-bottom: .15rem; }
+.fin-expense-bar-bg { height: 8px; background: rgba(255,255,255,.04); border-radius: 4px; overflow: hidden; }
+.fin-expense-bar-fill { height: 100%; border-radius: 4px; transition: width .5s ease; }
+
+.fin-upcoming { background: var(--bg-card); border-radius: .6rem; padding: .65rem .85rem; margin-bottom: .35rem; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(96,165,250,.05); }
+.fin-upcoming-date { font-size: .72rem; color: #64748b; min-width: 4.5rem; }
+.fin-upcoming-info { flex: 1; font-size: .78rem; color: #cbd5e1; margin: 0 .5rem; }
+.fin-upcoming-amount { font-size: .82rem; font-weight: 600; color: var(--green); white-space: nowrap; }
+
+.fin-month-nav { display: flex; align-items: center; gap: .75rem; margin-bottom: 1rem; }
+.fin-month-btn { background: rgba(96,165,250,.1); border: none; color: var(--accent); padding: .35rem .65rem; border-radius: .4rem; cursor: pointer; font-size: .8rem; }
+.fin-month-btn:hover { background: rgba(96,165,250,.2); }
+.fin-month-current { font-size: .95rem; font-weight: 600; color: #e2e8f0; }
+
+.fin-loading { text-align: center; padding: 3rem 1rem; color: #64748b; font-size: .85rem; }
+.fin-empty { color: #475569; font-size: .78rem; font-style: italic; padding: .5rem 0; }
+
+.fin-spinner { display: inline-block; width: 1.2rem; height: 1.2rem; border: 2px solid rgba(96,165,250,.2); border-top-color: var(--accent); border-radius: 50%; animation: fin-spin .7s linear infinite; margin-right: .4rem; vertical-align: middle; }
+@keyframes fin-spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// ===============================================================
+// FIREBASE CONFIG
+// ===============================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyC0BNqBsDkepHc8ktlUZyW_mKIXbXX5nuM",
+  authDomain: "artist-booking-manager.firebaseapp.com",
+  projectId: "artist-booking-manager",
+  storageBucket: "artist-booking-manager.firebasestorage.app",
+  messagingSenderId: "741081977716",
+  appId: "1:741081977716:web:31dfe2ea36652a63129221"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+db.enablePersistence({ synchronizeTabs: true }).catch(err => {
+  console.warn('Offline persistence failed:', err.code);
+});
+
+// --- Constants ---
+const MONTHS = ["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
+const DAYS = [31,28,31,30,31,30,31,31,30,31,30,31];
+const STATUS = {
+  confirmed: { bg: 'var(--green)', label: 'Fest gebucht', short: 'Fest', cls: 'confirmed' },
+  tentative: { bg: 'var(--yellow)', label: 'Eventuell', short: 'Evt.', cls: 'tentative' },
+  unavailable: { bg: 'var(--red)', label: 'Nicht verfügbar', short: 'N/V', cls: 'unavailable' },
+  free: { bg: 'transparent', label: 'Frei', short: 'Frei', cls: '' },
+};
+const ARTIST_ST = {
+  active: { color: 'var(--green)', label: 'Aktiv', raw: '#22c55e' },
+  visa: { color: 'var(--yellow)', label: 'Visa-Prozess', raw: '#eab308' },
+  archived: { color: 'var(--text-muted)', label: 'Archiv', raw: '#64748b' },
+};
+const PHASES = [
+  { key: 'contacted', label: 'Kontaktiert', color: '#64748b', icon: '[mail]', desc: 'Erstanfrage gesendet' },
+  { key: 'interested', label: 'Interessiert', color: '#3b82f6', icon: '[chat]', desc: 'Positive Rückmeldung' },
+  { key: 'visa_applied', label: 'Visa beantragt', color: '#f59e0b', icon: '[list]', desc: 'Unterlagen eingereicht' },
+  { key: 'visa_received', label: 'Visa erhalten', color: '#22c55e', icon: '[ok]', desc: 'Bereit zur Übernahme' },
+];
+const WORK_STATUS = {
+  present: { bg: '#22c55e', label: 'Working', desc: 'Present at the studio', icon: '+', short: 'Work' },
+  oncall: { bg: '#f97316', label: 'On-call', desc: 'At home . 20 min away', icon: '[tel]', short: 'Call' },
+  off: { bg: '#ef4444', label: 'Day off', desc: 'Not available today', icon: 'x', short: 'Off' },
+};
+const WS_DAY_SHORT = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+const WS_DAY_FULL = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+// --- State ---
+let state = {
+  artists: [],
+  bookings: {},
+  pipeline: [],
+  todos: [],
+  tab: 'achern',
+  month: new Date().getMonth(),
+  filter: 'all',
+  online: navigator.onLine,
+  loaded: false,
+  workSchedule: {},
+  locationConfig: {},
+  workTab: 'weil',
+  workWeekStart: getMondayOfWeek(new Date()),
+  todoFilter: { priority: 'all', kategorie: 'all', status: 'all', person: 'all', search: '' },
+  todoSort: { field: 'priority', dir: 'asc' },
+  todoHideCompleted: false,
+  calendarRevenue: {},
+  financeData: null,
+  financeDetail: null,
+  financeMonth: new Date().getMonth(),
+  financeLoading: false,
+};
+
+// --- Firebase Listeners ---
+function initListeners() {
+  db.collection('artists').orderBy('name').onSnapshot(snap => {
+    state.artists = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (state.loaded) render();
+  });
+  db.collection('bookings').onSnapshot(snap => {
+    const bk = { achern: {}, weil: {} };
+    snap.docs.forEach(d => {
+      const data = d.data();
+      const loc = data.location;
+      if (!bk[loc]) bk[loc] = {};
+      const key = `${data.month}-${data.day}`;
+      if (!bk[loc][key]) bk[loc][key] = [];
+      bk[loc][key].push({ artistId: data.artistId, status: data.status, docId: d.id, revenue: data.revenue || 0, deposit: data.deposit || 0, source: data.source || '' });
+    });
+    state.bookings = bk;
+    if (state.loaded) render();
+  });
+  db.collection('pipeline').orderBy('name').onSnapshot(snap => {
+    state.pipeline = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (state.loaded) render();
+  });
+  db.collection('workSchedule').onSnapshot(snap => {
+    const ws = {};
+    snap.docs.forEach(d => { ws[d.id] = { ...d.data(), docId: d.id }; });
+    state.workSchedule = ws;
+    if (state.loaded) render();
+  });
+  db.collection('locationConfig').onSnapshot(snap => {
+    const lc = {};
+    snap.docs.forEach(d => { lc[d.id] = d.data(); });
+    state.locationConfig = lc;
+    if (state.loaded) render();
+  });
+  db.collection('todos').onSnapshot(snap => {
+    state.todos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (state.loaded) render();
+  });
+  db.collection('calendarRevenue').onSnapshot(snap => {
+    const rv = {};
+    snap.docs.forEach(d => {
+      const data = d.data();
+      const key = `${data.month}_${data.location}`;
+      let events = [];
+      try { events = JSON.parse(data.eventsJson || '[]'); } catch(e) {}
+      rv[key] = { month: data.month, location: data.location, totalRevenue: data.totalRevenue || 0, totalDeposit: data.totalDeposit || 0, eventCount: data.eventCount || 0, eventsWithRevenue: data.eventsWithRevenue || 0, events, syncedAt: data.syncedAt || '' };
+    });
+    state.calendarRevenue = rv;
+    if (state.loaded) render();
+  });
+
+  setTimeout(() => { state.loaded = true; render(); }, 1500);
+  Promise.all([
+    db.collection('artists').get(),
+    db.collection('bookings').get(),
+    db.collection('pipeline').get(),
+    db.collection('workSchedule').get(),
+    db.collection('locationConfig').get(),
+    db.collection('todos').get(),
+    db.collection('calendarRevenue').get(),
+  ]).then(() => { state.loaded = true; render(); }).catch(() => { state.loaded = true; render(); });
+}
+
+window.addEventListener('online', () => { state.online = true; render(); });
+window.addEventListener('offline', () => { state.online = false; render(); });
+
+// --- Firebase Operations Module 1 ---
+async function addArtist(data) { await db.collection('artists').add(data); toast('Künstler angelegt', 'success'); }
+async function updateArtist(id, data) { const { id: _, ...clean } = data; await db.collection('artists').doc(id).update(clean); toast('Gespeichert', 'success'); }
+async function deleteArtist(id) {
+  const batch = db.batch();
+  batch.delete(db.collection('artists').doc(id));
+  const bkSnap = await db.collection('bookings').where('artistId', '==', id).get();
+  bkSnap.forEach(doc => batch.delete(doc.ref));
+  await batch.commit();
+  toast('Künstler gelöscht', 'success');
+}
+async function saveBooking(artistId, month, startDay, endDay, status, location, conflicts) {
+  const loc = location === 'Achern' ? 'achern' : 'weil';
+  const batch = db.batch();
+  for (let d = startDay; d <= endDay; d++) {
+    if (conflicts.includes(d) && status !== 'free') continue;
+    const key = `${month}-${d}`;
+    const existing = (state.bookings[loc]?.[key] || []).filter(b => b.artistId === artistId);
+    existing.forEach(b => { if (b.docId) batch.delete(db.collection('bookings').doc(b.docId)); });
+    if (status !== 'free') { const ref = db.collection('bookings').doc(); batch.set(ref, { artistId, month, day: d, status, location: loc }); }
+  }
+  await batch.commit();
+  toast('Buchung gespeichert', 'success');
+}
+async function addCandidate(data) { await db.collection('pipeline').add(data); toast('Kandidat hinzugefügt', 'success'); }
+async function updateCandidate(id, data) { const { id: _, ...clean } = data; await db.collection('pipeline').doc(id).update(clean); toast('Aktualisiert', 'success'); }
+async function convertCandidate(candidate) {
+  const batch = db.batch();
+  const aRef = db.collection('artists').doc();
+  batch.set(aRef, { name: candidate.name, status: 'active', nationality: candidate.nationality || '', phone: candidate.phone || '', email: candidate.email || '', notes: `Aus Pipeline übernommen.\n${candidate.notes || ''}`, documents: candidate.documents || [], joinDate: new Date().toISOString().split('T')[0], visaExpiry: '' });
+  batch.delete(db.collection('pipeline').doc(candidate.id));
+  await batch.commit();
+  toast(`${candidate.name} -> Aktiver Künstler!`, 'success');
+}
+
+// --- Firebase Operations Module 2 ---
+async function setWorkStatus(artistId, location, dateStr, status) {
+  const key = `${artistId}_${location}_${dateStr}`;
+  if (status === 'present') {
+    const existing = state.workSchedule[key];
+    if (existing?.docId) await db.collection('workSchedule').doc(existing.docId).delete();
+  } else {
+    await db.collection('workSchedule').doc(key).set({ artistId, location, date: dateStr, status });
+  }
+  toast('Status saved +', 'success');
+}
+async function saveLocationConfig(location, config) {
+  const firestoreConfig = { ...config, couples: (config.couples || []).map(p => ({ a: p[0], b: p[1] })) };
+  await db.collection('locationConfig').doc(location).set(firestoreConfig);
+  toast('Settings saved +', 'success');
+}
+
+// --- Firebase Operations Module 3: TODO ---
+async function addTodo(data) {
+  data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+  data.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+  await db.collection('todos').add(data);
+  toast('Aufgabe erstellt', 'success');
+}
+async function updateTodo(id, data) {
+  data.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+  await db.collection('todos').doc(id).update(data);
+}
+async function deleteTodo(id) {
+  await db.collection('todos').doc(id).delete();
+  toast('Aufgabe gelöscht', 'success');
+}
+function toggleTodoStatus(id) {
+  const todo = state.todos.find(t => t.id === id);
+  if (!todo) return;
+  const next = todo.status === 'Offen' ? 'In Arbeit' : todo.status === 'In Arbeit' ? 'erledigt' : 'Offen';
+  updateTodo(id, { status: next });
+}
+
+// --- Utilities ---
+function getBk(loc, artistId, month, day) { const l = loc === 'Achern' ? 'achern' : 'weil'; return (state.bookings[l]?.[`${month}-${day}`] || []).find(b => b.artistId === artistId); }
+function isElsewhere(curLoc, artistId, month, day) { const other = curLoc === 'Achern' ? 'weil' : 'achern'; return (state.bookings[other]?.[`${month}-${day}`] || []).find(b => b.artistId === artistId && (b.status === 'confirmed' || b.status === 'tentative')); }
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function getMondayOfWeek(date) { const d = new Date(date); const day = d.getDay(); const diff = day === 0 ? -6 : 1 - day; d.setDate(d.getDate() + diff); d.setHours(0, 0, 0, 0); return d; }
+function getWeekDates(weekStart) { const dates = []; for (let i = 0; i < 6; i++) { const d = new Date(weekStart); d.setDate(d.getDate() + i); dates.push(d); } return dates; }
+function dateToStr(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function strToDate(s) { const [y, mo, d] = s.split('-').map(Number); return new Date(y, mo - 1, d); }
+function isToday(d) { const t = new Date(); return d.getFullYear() === t.getFullYear() && d.getMonth() === t.getMonth() && d.getDate() === t.getDate(); }
+function isPast(d) { const t = new Date(); t.setHours(0,0,0,0); return d < t; }
+function getWorkEntry(artistId, location, date) { return state.workSchedule[`${artistId}_${location}_${dateToStr(date)}`]; }
+function getWorkStatus(artistId, location, date) { return getWorkEntry(artistId, location, date)?.status || 'present'; }
+function getLocConfig(location) { const raw = state.locationConfig[location]; if (!raw) return { minStaff: 2, staffArtistIds: [], couples: [] }; const couples = (raw.couples || []).map(p => Array.isArray(p) ? p : [p.a, p.b]); return { ...raw, couples }; }
+function countPresent(location, date, excludeArtistId = null) { const cfg = getLocConfig(location); return (cfg.staffArtistIds || []).filter(id => { if (id === excludeArtistId) return false; return getWorkStatus(id, location, date) === 'present'; }).length; }
+function validateChange(artistId, location, date, newStatus) {
+  const cfg = getLocConfig(location); const min = cfg.minStaff || 2; const cur = getWorkStatus(artistId, location, date);
+  if (cur === 'present' && newStatus !== 'present') { const remaining = countPresent(location, date, artistId); if (remaining < min) return { blocked: true, msg: `Min. ${min} artists must be at the studio. Only ${remaining} would remain.` }; }
+  if (newStatus === 'off') { for (const pair of (cfg.couples || [])) { if (pair.includes(artistId)) { const partner = pair.find(id => id !== artistId); if (partner && getWorkStatus(partner, location, date) === 'off') { const pa = state.artists.find(a => a.id === partner); return { blocked: false, warning: true, msg: `Your partner ${pa?.name || ''} also has this day off.` }; } } } }
+  return { blocked: false };
+}
+
+// --- Toast ---
+function toast(msg, type = 'info') { const el = document.createElement('div'); el.className = `toast toast-${type}`; el.textContent = msg; document.body.appendChild(el); setTimeout(() => el.remove(), 3000); }
+
+// --- Modals ---
+function showModal(html, width = '580px') { const overlay = document.createElement('div'); overlay.className = 'overlay'; overlay.innerHTML = `<div class="modal" style="width:min(${width},92vw)">${html}</div>`; document.body.appendChild(overlay); requestAnimationFrame(() => overlay.classList.add('show')); overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(overlay); }); return overlay; }
+function closeModal(overlay) { if (!overlay) return; overlay.classList.remove('show'); setTimeout(() => overlay.remove(), 150); }
+
+// --- Artist Detail Modal ---
+function showArtistDetail(artist) {
+  let section = 'stamm';
+  let docs = [...(artist.documents || [])];
+  function renderDetail() {
+    const history = getArtistHistory(artist.id);
+    const statusOpts = Object.entries(ARTIST_ST).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('');
+    let bodyHTML = '';
+    if (section === 'stamm') {
+      bodyHTML = `<div class="form-grid"><div class="field"><label>Name</label><input id="ad-name" value="${esc(artist.name || '')}"></div><div class="field"><label>Status</label><select id="ad-status">${statusOpts}</select></div><div class="field"><label>Nationalität</label><input id="ad-nat" value="${esc(artist.nationality || '')}"></div><div class="field"><label>Telefon</label><input id="ad-phone" value="${esc(artist.phone || '')}"></div><div class="field"><label>E-Mail</label><input id="ad-email" value="${esc(artist.email || '')}"></div><div class="field"><label>Eintritt</label><input id="ad-join" value="${esc(artist.joinDate || '')}" placeholder="YYYY-MM-DD"></div><div class="field"><label>Visum bis</label><input id="ad-visa" value="${esc(artist.visaExpiry || '')}" placeholder="YYYY-MM-DD"></div></div><div class="field" style="margin-top:12px"><label>Notizen</label><textarea id="ad-notes" rows="3">${esc(artist.notes || '')}</textarea></div>`;
+    } else if (section === 'docs') {
+      const docRows = docs.map((d, i) => `<div class="doc-row"><span>[doc]</span><span class="doc-name" style="flex:1">${esc(d.name)}</span><a href="${esc(d.url)}" target="_blank" class="doc-link">Öffnen -></a><button class="doc-remove" onclick="window._removeDoc(${i})">×</button></div>`).join('');
+      bodyHTML = `<div class="doc-add-row"><input id="ad-dn" placeholder="Dokumentname"><input id="ad-du" placeholder="Google Drive Link / URL" style="flex:2"><button class="btn btn-primary btn-sm" onclick="window._addDoc()">+</button></div>${docs.length === 0 ? '<div style="color:var(--text-ghost);text-align:center;padding:28px;font-size:13px">Noch keine Dokumente</div>' : docRows}`;
+    } else {
+      const rows = history.map(h => `<div class="history-row"><div class="history-dot" style="background:${STATUS[h.status]?.bg || 'gray'}"></div><span class="history-text"><b>${h.loc}</b> . ${h.sd}.${MONTHS[h.month]}${h.sd !== h.ed ? ` - ${h.ed}.${MONTHS[h.month]}` : ''}</span><span class="history-badge" style="background:${STATUS[h.status]?.bg || 'gray'}22;color:${STATUS[h.status]?.bg || 'gray'}">${STATUS[h.status]?.short || ''}</span></div>`).join('');
+      bodyHTML = history.length === 0 ? '<div style="color:var(--text-ghost);text-align:center;padding:28px;font-size:13px">Keine Buchungen</div>' : rows;
+    }
+    const statusBadge = ARTIST_ST[artist.status] || ARTIST_ST.active;
+    return `<div class="modal-header"><div><div style="display:flex;align-items:center;gap:10px;margin-bottom:4px"><div class="modal-title">${esc(artist.name)}</div><span style="background:${statusBadge.raw}22;color:${statusBadge.raw};padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600">${statusBadge.label}</span></div><span style="color:var(--text-faint);font-size:12px">${esc(artist.nationality || '')}</span></div><button class="modal-close" onclick="closeModal(this.closest('.overlay'))">x</button></div><div class="modal-tabs"><button class="modal-tab ${section === 'stamm' ? 'active' : ''}" onclick="window._adSec('stamm')">Stammdaten</button><button class="modal-tab ${section === 'docs' ? 'active' : ''}" onclick="window._adSec('docs')">Dokumente</button><button class="modal-tab ${section === 'history' ? 'active' : ''}" onclick="window._adSec('history')">Verlauf</button></div><div class="modal-body">${bodyHTML}</div><div class="modal-footer" style="justify-content:space-between"><button class="btn btn-danger" onclick="window._adDelete()" style="margin-right:auto">Löschen</button><div style="display:flex;gap:10px"><button class="btn btn-secondary" onclick="closeModal(this.closest('.overlay'))">Abbrechen</button><button class="btn btn-primary" onclick="window._adSave()">Speichern</button></div></div>`;
+  }
+  let overlay = showModal(renderDetail());
+  function rerender() { overlay.querySelector('.modal').innerHTML = renderDetail(); if (section === 'stamm') { const sel = overlay.querySelector('#ad-status'); if (sel) sel.value = artist.status || 'active'; } }
+  window._adSec = (s) => { section = s; rerender(); };
+  window._addDoc = () => { const n = overlay.querySelector('#ad-dn')?.value?.trim(); const u = overlay.querySelector('#ad-du')?.value?.trim(); if (!n || !u) return; docs.push({ name: n, url: u, addedAt: new Date().toISOString().split('T')[0] }); rerender(); };
+  window._removeDoc = (i) => { docs.splice(i, 1); rerender(); };
+  window._adDelete = () => { if (!confirm(`"${artist.name}" wirklich löschen? Alle Buchungen dieses Künstlers werden ebenfalls gelöscht.`)) return; deleteArtist(artist.id); closeModal(overlay); };
+  window._adSave = () => { const data = {}; if (section === 'stamm') { data.name = overlay.querySelector('#ad-name')?.value || artist.name; data.status = overlay.querySelector('#ad-status')?.value || artist.status; data.nationality = overlay.querySelector('#ad-nat')?.value || ''; data.phone = overlay.querySelector('#ad-phone')?.value || ''; data.email = overlay.querySelector('#ad-email')?.value || ''; data.joinDate = overlay.querySelector('#ad-join')?.value || ''; data.visaExpiry = overlay.querySelector('#ad-visa')?.value || ''; data.notes = overlay.querySelector('#ad-notes')?.value || ''; } data.documents = docs; updateArtist(artist.id, { ...artist, ...data, documents: docs }); closeModal(overlay); };
+  setTimeout(() => { const sel = overlay.querySelector('#ad-status'); if (sel) sel.value = artist.status || 'active'; }, 50);
+}
+
+function getArtistHistory(artistId) {
+  const entries = [];
+  for (const loc of ['achern', 'weil']) { for (const [key, bks] of Object.entries(state.bookings[loc] || {})) { for (const b of bks) { if (b.artistId === artistId) { const [m, d] = key.split('-').map(Number); entries.push({ loc: loc === 'achern' ? 'Achern' : 'Weil', month: m, day: d, status: b.status }); } } } }
+  entries.sort((a, b) => a.month - b.month || a.day - b.day);
+  const grouped = []; let cur = null;
+  for (const e of entries) { if (cur && cur.loc === e.loc && cur.status === e.status && cur.month === e.month && e.day === cur.ed + 1) { cur.ed = e.day; } else { if (cur) grouped.push(cur); cur = { ...e, sd: e.day, ed: e.day }; } }
+  if (cur) grouped.push(cur);
+  return grouped;
+}
+
+// --- Booking Modal ---
+function showBookingModal(artist, month, day, location) {
+  const existing = getBk(location, artist.id, month, day);
+  const blocked = isElsewhere(location, artist.id, month, day);
+  let status = existing?.status || 'confirmed'; let rangeEnd = day;
+  function getConflicts() { const c = []; for (let d = day; d <= rangeEnd; d++) { if (isElsewhere(location, artist.id, month, d)) c.push(d); } return c; }
+  function renderBk() {
+    const conflicts = getConflicts();
+    const blockedAlert = (blocked && !existing) ? `<div class="alert alert-error">(!) Am anderen Standort gebucht!</div>` : '';
+    const conflictAlert = (conflicts.length > 0 && status !== 'free') ? `<div class="alert alert-warning" style="margin-top:8px">(!) Konflikte: ${conflicts.join(', ')}.${MONTHS[month]}</div>` : '';
+    const statusBtns = Object.entries(STATUS).map(([k, v]) => { const active = status === k; const color = v.bg === 'transparent' ? 'var(--text-dim)' : v.bg; const borderC = active ? (v.bg === 'transparent' ? 'var(--text-faint)' : v.bg) : 'var(--bg-input)'; const bgC = active ? (v.bg === 'transparent' ? 'var(--bg-input)' : v.bg + '22') : 'var(--bg-input)'; return `<button class="status-btn" style="color:${color};border-color:${borderC};background:${bgC}" onclick="window._bkStatus('${k}')">${v.short}</button>`; }).join('');
+    return `<div style="padding:22px;width:min(400px,90vw)"><h3 style="margin:0 0 4px;font-size:17px">Buchung</h3><p style="color:var(--text-faint);font-size:12px;margin:0 0 18px">${esc(artist.name)} . ${esc(location)} . ${day}.${MONTHS[month]}</p>${blockedAlert}<div style="margin-bottom:14px"><label style="display:block;color:var(--text-muted);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">Status</label><div class="status-group">${statusBtns}</div></div><div style="margin-bottom:14px"><label style="display:block;color:var(--text-muted);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">Zeitraum: ${day}. - ${rangeEnd}.${MONTHS[month]}</label><input type="range" min="${day}" max="${DAYS[month]}" value="${rangeEnd}" oninput="window._bkRange(this.value)">${conflictAlert}</div><div style="display:flex;justify-content:flex-end;gap:10px"><button class="btn btn-secondary" onclick="closeModal(this.closest('.overlay'))">Abbrechen</button><button class="btn btn-primary" ${blocked && !existing && status !== 'free' ? 'disabled' : ''} onclick="window._bkSave()">Speichern</button></div></div>`;
+  }
+  const overlay = showModal(renderBk(), '420px');
+  const rerender = () => { overlay.querySelector('.modal').innerHTML = renderBk(); };
+  window._bkStatus = (s) => { status = s; rerender(); };
+  window._bkRange = (v) => { rangeEnd = parseInt(v); rerender(); };
+  window._bkSave = () => { const conflicts = getConflicts(); if (conflicts.length > 0 && status !== 'free') { if (!confirm(`Konflikte an ${conflicts.length} Tag(en). Trotzdem?`)) return; } saveBooking(artist.id, month, day, rangeEnd, status, location, conflicts); closeModal(overlay); };
+}
+
+// --- Candidate Modal ---
+function showCandidateModal(candidate, isNew) {
+  const data = candidate || { name: '', nationality: '', phone: '', email: '', phase: 'contacted', notes: '', contactedDate: new Date().toISOString().split('T')[0], documents: [], specialty: '' };
+  let docs = [...(data.documents || [])];
+  function renderCm() {
+    const phaseOpts = PHASES.map(p => `<option value="${p.key}" ${data.phase === p.key ? 'selected' : ''}>${p.icon} ${p.label}</option>`).join('');
+    const docRows = docs.map((d, i) => `<div class="doc-row"><span style="font-size:14px">[doc]</span><span style="flex:1;color:var(--text);font-size:12px">${esc(d.name)}</span><a href="${esc(d.url)}" target="_blank" class="doc-link">-></a><button class="doc-remove" onclick="window._cmRmDoc(${i})">×</button></div>`).join('');
+    return `<div class="modal-header"><div class="modal-title">${isNew ? 'Neuer Kandidat' : esc(data.name)}</div><button class="modal-close" onclick="closeModal(this.closest('.overlay'))">x</button></div><div class="modal-body"><div class="form-grid"><div class="field"><label>Name</label><input id="cm-name" value="${esc(data.name)}"></div><div class="field"><label>Spezialgebiet</label><input id="cm-spec" value="${esc(data.specialty || '')}"></div><div class="field"><label>Nationalität</label><input id="cm-nat" value="${esc(data.nationality || '')}"></div><div class="field"><label>Phase</label><select id="cm-phase">${phaseOpts}</select></div><div class="field"><label>Telefon</label><input id="cm-phone" value="${esc(data.phone || '')}"></div><div class="field"><label>E-Mail</label><input id="cm-email" value="${esc(data.email || '')}"></div><div class="field"><label>Kontaktiert am</label><input id="cm-date" value="${esc(data.contactedDate || '')}" placeholder="YYYY-MM-DD"></div></div><div class="field" style="margin-top:12px"><label>Notizen / Timeline</label><textarea id="cm-notes" rows="4">${esc(data.notes || '')}</textarea></div><div style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px"><label style="display:block;color:var(--text-muted);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">Dokumente</label><div class="doc-add-row"><input id="cm-dn" placeholder="Name"><input id="cm-du" placeholder="URL / Drive Link" style="flex:2"><button class="btn btn-primary btn-sm" onclick="window._cmAddDoc()">+</button></div>${docRows}</div></div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal(this.closest('.overlay'))">Abbrechen</button><button class="btn btn-primary" onclick="window._cmSave()">${isNew ? 'Anlegen' : 'Speichern'}</button></div>`;
+  }
+  const overlay = showModal(renderCm(), '540px');
+  const rerender = () => { overlay.querySelector('.modal').innerHTML = renderCm(); };
+  window._cmAddDoc = () => { const n = overlay.querySelector('#cm-dn')?.value?.trim(); const u = overlay.querySelector('#cm-du')?.value?.trim(); if (!n || !u) return; docs.push({ name: n, url: u, addedAt: new Date().toISOString().split('T')[0] }); rerender(); };
+  window._cmRmDoc = (i) => { docs.splice(i, 1); rerender(); };
+  window._cmSave = () => { const d = { name: overlay.querySelector('#cm-name')?.value?.trim() || '', specialty: overlay.querySelector('#cm-spec')?.value?.trim() || '', nationality: overlay.querySelector('#cm-nat')?.value?.trim() || '', phase: overlay.querySelector('#cm-phase')?.value || 'contacted', phone: overlay.querySelector('#cm-phone')?.value?.trim() || '', email: overlay.querySelector('#cm-email')?.value?.trim() || '', contactedDate: overlay.querySelector('#cm-date')?.value?.trim() || '', notes: overlay.querySelector('#cm-notes')?.value || '', documents: docs }; if (!d.name) return toast('Name ist Pflichtfeld', 'error'); if (isNew) addCandidate(d); else updateCandidate(candidate.id, d); closeModal(overlay); };
+}
+
+// --- MODULE 2: Work Schedule Modals ---
+function showWorkDayModal(artistId, location, dateStr) {
+  const artist = state.artists.find(a => a.id === artistId); if (!artist) return;
+  const date = strToDate(dateStr); if (isPast(date)) return;
+  const cur = getWorkStatus(artistId, location, date); let selected = cur;
+  function renderWDM() {
+    const dayIdx = date.getDay() - 1; const dayName = dayIdx >= 0 && dayIdx < 6 ? WS_DAY_FULL[dayIdx] : 'Sunday';
+    const dateLabel = `${date.getDate()}.${MONTHS[date.getMonth()]} . ${dayName}`;
+    const locLabel = location === 'weil' ? 'Weil am Rhein' : 'Achern';
+    const validation = selected !== cur ? validateChange(artistId, location, date, selected) : { blocked: false };
+    const options = Object.entries(WORK_STATUS).map(([k, v]) => { const isSel = selected === k; const isDefault = k === 'present' && !getWorkEntry(artistId, location, date); return `<div class="ws-status-option ${isSel ? 'ws-sel' : ''}" style="border-color:${isSel ? v.bg : 'transparent'}" onclick="window._wdmSel('${k}')"><div class="ws-status-icon" style="background:${v.bg}20">${v.icon}</div><div style="flex:1"><div style="font-size:13px;font-weight:700;color:${v.bg}">${v.label}${isDefault ? ' <span style="color:var(--text-ghost);font-weight:400;font-size:10px">(default)</span>' : ''}</div><div style="font-size:10px;color:var(--text-muted);margin-top:1px">${v.desc}</div></div><div style="width:14px;height:14px;border-radius:50%;border:2px solid ${v.bg};background:${isSel ? v.bg : 'transparent'};flex-shrink:0"></div></div>`; }).join('');
+    const alertHtml = validation.blocked ? `<div class="alert alert-error" style="margin-top:10px">(x) ${esc(validation.msg)}</div>` : validation.warning ? `<div class="alert alert-warning" style="margin-top:10px">(!) ${esc(validation.msg)}</div>` : '';
+    const cfg = getLocConfig(location); const presentNow = countPresent(location, date); const staffTotal = (cfg.staffArtistIds || []).length;
+    const statusSummary = staffTotal > 0 ? `<div style="margin-bottom:14px;padding:8px 12px;background:var(--bg-input);border-radius:6px;font-size:11px"><span style="color:var(--text-muted)">Today's staff: </span><span style="color:var(--green);font-weight:700">${presentNow} working</span><span style="color:var(--text-ghost)"> / ${staffTotal} total</span>${presentNow < (cfg.minStaff || 2) ? ' <span style="color:var(--red)">(!) below minimum</span>' : ''}</div>` : '';
+    return `<div style="padding:22px;width:min(380px,92vw)"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px"><div><h3 style="font-size:16px;font-weight:700;margin:0 0 3px">${esc(artist.name)}</h3><p style="color:var(--text-faint);font-size:11px;margin:0">${dateLabel} . ${locLabel}</p></div><button class="modal-close" onclick="closeModal(this.closest('.overlay'))">x</button></div>${statusSummary}${options}${alertHtml}<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px"><button class="btn btn-secondary" onclick="closeModal(this.closest('.overlay'))">Cancel</button><button class="btn btn-primary" ${validation.blocked ? 'disabled' : ''} onclick="window._wdmSave()">Save</button></div></div>`;
+  }
+  const overlay = showModal(renderWDM(), '400px');
+  const rerender = () => { overlay.querySelector('.modal').innerHTML = renderWDM(); };
+  window._wdmSel = (s) => { selected = s; rerender(); };
+  window._wdmSave = () => { const v = validateChange(artistId, location, date, selected); if (v.blocked) return; setWorkStatus(artistId, location, dateStr, selected); closeModal(overlay); };
+}
+
+function showWorkWeekModal(artistId, location) {
+  const artist = state.artists.find(a => a.id === artistId); if (!artist) return;
+  const weekDates = getWeekDates(state.workWeekStart); const cfg = getLocConfig(location); const min = cfg.minStaff || 2;
+  function renderWWM() {
+    const rows = weekDates.map((d, i) => { const status = getWorkStatus(artistId, location, d); const ws = WORK_STATUS[status]; const isDefault = !getWorkEntry(artistId, location, d); const past = isPast(d); const isT = isToday(d); const present = countPresent(location, d); const ok = present >= min; return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;margin-bottom:5px;background:${isT ? 'var(--bg-hover)' : 'var(--bg-input)'}"><div style="width:36px;text-align:center"><div style="font-size:11px;font-weight:700;color:${isT ? 'var(--accent)' : 'var(--text-faint)'}">${WS_DAY_SHORT[i]}</div><div style="font-size:9px;color:var(--text-ghost)">${d.getDate()}.${MONTHS[d.getMonth()]}</div></div><div style="width:34px;height:34px;border-radius:8px;background:${ws.bg}20;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${isDefault ? '<span style="color:var(--text-ghost);font-size:12px">.</span>' : ws.icon}</div><div style="flex:1"><div style="font-size:12px;font-weight:600;color:${ws.bg}">${ws.label}${isDefault ? ' <span style="color:var(--text-ghost);font-weight:400">(default)</span>' : ''}</div><div style="font-size:9px;color:${ok ? 'var(--text-ghost)' : 'var(--red)'}">${present} present${!ok && (cfg.staffArtistIds || []).length > 0 ? ' (!) below min' : ''}</div></div>${!past ? `<button class="btn btn-secondary btn-sm" style="font-size:10px;padding:4px 8px" onclick="closeModal(document.querySelector('.overlay'));setTimeout(()=>showWorkDayModal('${artistId}','${location}','${dateToStr(d)}'),160)">Edit</button>` : `<span style="font-size:9px;color:var(--text-ghost)">past</span>`}</div>`; }).join('');
+    return `<div class="modal-header"><div><div class="modal-title">${esc(artist.name)}</div><div style="color:var(--text-faint);font-size:12px;margin-top:2px">Week . ${location === 'weil' ? 'Weil am Rhein' : 'Achern'}</div></div><button class="modal-close" onclick="closeModal(this.closest('.overlay'))">x</button></div><div class="modal-body">${rows}</div>`;
+  }
+  showModal(renderWWM(), '440px');
+}
+
+function showWorkAdminModal(location) {
+  const cfg = getLocConfig(location); let staffIds = [...(cfg.staffArtistIds || [])]; let couples = (cfg.couples || []).map(p => [...p]); let minStaff = cfg.minStaff || 2;
+  function renderWAM() {
+    const allActive = state.artists.filter(a => a.status !== 'archived');
+    const artistChecks = allActive.map(a => { const inStaff = staffIds.includes(a.id); return `<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;background:${inStaff ? 'rgba(34,197,94,0.07)' : 'var(--bg-input)'};margin-bottom:4px;border:1px solid ${inStaff ? 'rgba(34,197,94,0.18)' : 'transparent'}"><input type="checkbox" id="staff-${a.id}" ${inStaff ? 'checked' : ''} onchange="window._wamToggle('${a.id}',this.checked)" style="width:16px;height:16px;accent-color:var(--green);cursor:pointer"><label for="staff-${a.id}" style="flex:1;cursor:pointer;font-size:12px;font-weight:500">${esc(a.name)}</label><span style="font-size:10px;color:${ARTIST_ST[a.status]?.raw || '#64748b'};background:${ARTIST_ST[a.status]?.raw || '#64748b'}18;padding:1px 7px;border-radius:10px">${ARTIST_ST[a.status]?.label || ''}</span></div>`; }).join('');
+    const coupleRows = couples.map((pair, i) => { const a1 = state.artists.find(a => a.id === pair[0]); const a2 = state.artists.find(a => a.id === pair[1]); if (!a1 || !a2) return ''; return `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:rgba(167,139,250,0.07);border:1px solid rgba(167,139,250,0.2);margin-bottom:4px"><span style="font-size:14px">(heart)</span><span style="flex:1;font-size:12px;font-weight:600;color:#a78bfa">${esc(a1.name)} & ${esc(a2.name)}</span><button style="background:none;border:none;color:var(--red);cursor:pointer;font-size:18px;line-height:1" onclick="window._wamRmCouple(${i})">×</button></div>`; }).join('');
+    const staffForCouple = allActive.filter(a => staffIds.includes(a.id));
+    const coupleOpts1 = staffForCouple.map(a => `<option value="${a.id}">${esc(a.name)}</option>`).join('');
+    const canAddCouple = staffForCouple.length >= 2;
+    return `<div class="modal-header"><div><div class="modal-title">cfg Manage Location</div><div style="color:var(--text-faint);font-size:12px;margin-top:2px">${location === 'weil' ? '[pin] Weil am Rhein' : '[pin] Achern'}</div></div><button class="modal-close" onclick="closeModal(this.closest('.overlay'))">x</button></div><div class="modal-body"><div style="margin-bottom:20px;padding:12px;background:var(--bg-input);border-radius:8px"><div style="color:var(--text-muted);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">Minimum Artists at Studio</div><div style="display:flex;align-items:center;gap:12px"><button onclick="window._wamDecMin()" style="background:var(--bg-hover);border:1px solid var(--border);border-radius:6px;color:var(--text);width:32px;height:32px;cursor:pointer;font-size:16px;font-family:inherit">-</button><span style="font-size:22px;font-weight:700;color:var(--accent);min-width:30px;text-align:center">${minStaff}</span><button onclick="window._wamIncMin()" style="background:var(--bg-hover);border:1px solid var(--border);border-radius:6px;color:var(--text);width:32px;height:32px;cursor:pointer;font-size:16px;font-family:inherit">+</button><span style="color:var(--text-ghost);font-size:11px">artists must be present</span></div></div><div style="margin-bottom:20px"><div style="color:var(--text-muted);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">Artists at this Location (${staffIds.length})</div>${artistChecks}</div><div><div style="color:var(--text-muted);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">Couple Pairs</div>${coupleRows}${canAddCouple ? `<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;align-items:center"><select id="wam-c1" style="flex:1;min-width:100px;background:var(--bg-input);border:1px solid var(--text-ghost);border-radius:6px;padding:5px 8px;color:var(--text);font-family:inherit;font-size:12px">${coupleOpts1}</select><span style="color:#a78bfa;font-size:14px">(heart)</span><select id="wam-c2" style="flex:1;min-width:100px;background:var(--bg-input);border:1px solid var(--text-ghost);border-radius:6px;padding:5px 8px;color:var(--text);font-family:inherit;font-size:12px">${coupleOpts1}</select><button class="btn btn-secondary btn-sm" onclick="window._wamAddCouple()">+ Add</button></div>` : ''}</div></div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal(this.closest('.overlay'))">Cancel</button><button class="btn btn-primary" onclick="window._wamSave()">Save</button></div>`;
+  }
+  const overlay = showModal(renderWAM(), '520px');
+  const rerender = () => { overlay.querySelector('.modal').innerHTML = renderWAM(); };
+  window._wamToggle = (id, checked) => { if (checked) { if (!staffIds.includes(id)) staffIds.push(id); } else { staffIds = staffIds.filter(x => x !== id); couples = couples.filter(p => !p.includes(id)); } rerender(); };
+  window._wamDecMin = () => { minStaff = Math.max(1, minStaff - 1); rerender(); };
+  window._wamIncMin = () => { minStaff = Math.min(10, minStaff + 1); rerender(); };
+  window._wamRmCouple = (i) => { couples.splice(i, 1); rerender(); };
+  window._wamAddCouple = () => { const c1 = overlay.querySelector('#wam-c1')?.value; const c2 = overlay.querySelector('#wam-c2')?.value; if (!c1 || !c2 || c1 === c2) return toast('Select two different artists', 'error'); if (couples.some(p => (p[0] === c1 && p[1] === c2) || (p[0] === c2 && p[1] === c1))) return toast('Already paired', 'warning'); couples.push([c1, c2]); rerender(); };
+  window._wamSave = () => { saveLocationConfig(location, { minStaff, staffArtistIds: staffIds, couples }); closeModal(overlay); };
+}
+
+// --- Render ---
+function render() {
+  const app = document.getElementById('app');
+  if (!state.loaded) return;
+  const location = state.tab === 'achern' ? 'Achern' : 'Weil am Rhein';
+  const activeCount = state.artists.filter(a => a.status === 'active').length;
+  const pipeCount = state.pipeline.length;
+  const readyCount = state.pipeline.filter(c => c.phase === 'visa_received').length;
+  const openTodoCount = state.todos.filter(t => t.status !== 'erledigt').length;
+  // Current month revenue for selected location
+  const curLoc = state.tab === 'achern' ? 'achern' : 'weil';
+  const curMonthRev = state.calendarRevenue[`${new Date().getMonth()}_${curLoc}`];
+  const monthRevenue = curMonthRev?.totalRevenue || 0;
+  let filteredArtists = state.artists.filter(a => a.status !== 'archived');
+  if (state.filter !== 'all') filteredArtists = filteredArtists.filter(a => a.status === state.filter);
+  const isBookingTab = state.tab === 'achern' || state.tab === 'weil';
+  const isWorkTab = state.tab === 'work';
+  const isTodoTab = state.tab === 'todo';
+
+  app.innerHTML = `
+    <div class="header">
+      <div class="header-top">
+        <div>
+          <div class="logo">Artist Booking Manager</div>
+          <div class="subtitle">2026 . Echtzeit-Sync <span class="conn-dot ${state.online ? 'online' : 'offline'}" style="margin-left:6px" title="${state.online ? 'Online' : 'Offline'}"></span></div>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="stat-label">Aktive Künstler</div><div class="stat-value" style="color:var(--green)">${activeCount}</div></div>
+        <div class="stat"><div class="stat-label">In Pipeline</div><div class="stat-value" style="color:var(--blue)">${pipeCount}</div></div>
+        <div class="stat"><div class="stat-label">Visa erhalten</div><div class="stat-value" style="color:var(--yellow)">${readyCount}</div></div>
+        <div class="stat"><div class="stat-label">Offene TODOs</div><div class="stat-value" style="color:var(--red)">${openTodoCount}</div></div>
+        ${isBookingTab ? `<div class="stat"><div class="stat-label">${MONTHS[new Date().getMonth()]} Umsatz</div><div class="stat-value" style="color:var(--green)">${monthRevenue > 0 ? (monthRevenue >= 1000 ? (monthRevenue/1000).toFixed(1) + 'k' : monthRevenue + '€') : '-'}</div></div>` : ''}
+      </div>
+      <div class="tabs">
+        <button class="tab ${state.tab === 'achern' ? 'active' : ''}" onclick="setTab('achern')">[pin] Achern 2026</button>
+        <button class="tab ${state.tab === 'weil' ? 'active' : ''}" onclick="setTab('weil')">[pin] Weil am Rhein 2026</button>
+        <button class="tab ${state.tab === 'pipeline' ? 'active' : ''}" onclick="setTab('pipeline')">[sync] Pipeline (${pipeCount})</button>
+        <button class="tab ${isWorkTab ? 'active' : ''}" onclick="setTab('work')">[cal] Arbeitsplan</button>
+        <button class="tab ${isTodoTab ? 'active' : ''}" onclick="setTab('todo')">[list] TODO (${openTodoCount})</button>
+        <button class="tab ${state.tab==='finance'?'active':''}" onclick="setTab('finance')">[§] Finanzen</button>
+        <div class="tab-fill"></div>
+      </div>
+    </div>
+    <div class="content">
+      ${isBookingTab ? renderBookingView(filteredArtists, location) : isWorkTab ? renderWorkScheduleView() : isTodoTab ? renderTodoView() : state.tab === 'finance' ? renderFinanceView() : renderPipelineView()}
+    </div>
+  `;
+}
+
+function setTab(t) {
+  state.tab = t;
+  if (t === 'finance') {
+    injectFinanceCSS();
+    loadFinanceData();
+  }
+  render();
+}
+function setMonth(m) { state.month = m; render(); }
+function setFilter(f) { state.filter = f; render(); }
+function setWorkTab(loc) { state.workTab = loc; render(); }
+function shiftWorkWeek(dir) { const d = new Date(state.workWeekStart); d.setDate(d.getDate() + dir * 7); state.workWeekStart = d; render(); }
+function goToCurrentWeek() { state.workWeekStart = getMondayOfWeek(new Date()); render(); }
+function setTodoFilter(key, val) { state.todoFilter[key] = val; render(); }
+function setTodoSort(field) { if (state.todoSort.field === field) state.todoSort.dir = state.todoSort.dir === 'asc' ? 'desc' : 'asc'; else { state.todoSort.field = field; state.todoSort.dir = 'asc'; } render(); }
+function toggleHideCompleted() { state.todoHideCompleted = !state.todoHideCompleted; render(); }
+
+// --- Revenue Section ---
+function formatEuro(n) { return n > 0 ? n.toLocaleString('de-DE') + '€' : '-'; }
+
+function renderRevenueSection(location) {
+  const loc = location === 'Achern' ? 'achern' : 'weil';
+  const locLabel = location === 'Achern' ? 'Achern' : 'Weil am Rhein';
+  const now = new Date();
+  const currentMonth = now.getMonth();
+
+  // 2 Monate zurück + aktueller + 3 Monate voraus = 6 Monate
+  const months = [];
+  for (let offset = -2; offset <= 3; offset++) {
+    const m = currentMonth + offset;
+    if (m >= 0 && m <= 11) months.push(m);
+  }
+
+  let totalAllRev = 0, totalAllDep = 0;
+
+  const cards = months.map(m => {
+    const revData = state.calendarRevenue[`${m}_${loc}`];
+    const isPast = m < currentMonth;
+    const isCurrent = m === currentMonth;
+    const cls = isPast ? 'rv-past' : isCurrent ? 'rv-current' : 'rv-future';
+    const typeLabel = isPast ? 'Umsatz' : isCurrent ? 'Laufend' : 'Erwartet';
+
+    const totalRev = revData?.totalRevenue || 0;
+    const totalDep = revData?.totalDeposit || 0;
+    const remaining = totalRev - totalDep;
+    const eventCount = revData?.eventCount || 0;
+    const withRevenue = revData?.eventsWithRevenue || 0;
+
+    totalAllRev += totalRev;
+    totalAllDep += totalDep;
+
+    const hasData = totalRev > 0;
+    const isSelected = m === state.month;
+    const hasEvents = revData && revData.events && revData.events.length > 0;
+    const clickAction = hasEvents ? `setMonth(${m});showRevenueDetail(${m},'${loc}')` : `setMonth(${m})`;
+
+    return `<div class="revenue-card ${cls}" style="${isSelected ? 'box-shadow:0 0 0 2px var(--accent);' : ''}" onclick="${clickAction}">
+      <div class="revenue-card-head">
+        <span class="revenue-month-label">${MONTHS[m]}</span>
+        <span class="revenue-type-badge">${typeLabel}</span>
+      </div>
+      <div class="revenue-amount">${hasData ? formatEuro(totalRev) : '-'}</div>
+      ${hasData ? `
+        <div class="revenue-detail-line">AZ: ${formatEuro(totalDep)}</div>
+        <div class="revenue-detail-line">Offen: ${formatEuro(remaining)}</div>
+      ` : '<div class="revenue-empty">Keine Preisdaten</div>'}
+      <div class="revenue-events-count">${eventCount} Termine${withRevenue > 0 ? ' · ' + withRevenue + ' mit Preis' : ''}</div>
+    </div>`;
+  }).join('');
+
+  const totalOpen = totalAllRev - totalAllDep;
+
+  return `<div class="revenue-section">
+    <div class="revenue-header">
+      <span class="revenue-title">Umsatz ${locLabel}</span>
+      <span class="revenue-summary">Gesamt: <b>${formatEuro(totalAllRev)}</b> · Angezahlt: ${formatEuro(totalAllDep)} · Offen: ${formatEuro(totalOpen)}</span>
+    </div>
+    <div class="revenue-bar">${cards}</div>
+  </div>`;
+}
+
+function showRevenueDetail(month, location) {
+  const revData = state.calendarRevenue[`${month}_${location}`];
+  if (!revData || !revData.events || revData.events.length === 0) {
+    toast('Keine Umsatzdaten für diesen Monat', 'info');
+    return;
+  }
+
+  const events = [...revData.events].sort((a, b) => a.date.localeCompare(b.date));
+  const locLabel = location === 'achern' ? 'Achern' : 'Weil am Rhein';
+  const now = new Date();
+  const isPast = month < now.getMonth();
+  const typeLabel = isPast ? 'Umsatz (realisiert)' : month === now.getMonth() ? 'Laufender Monat' : 'Erwarteter Umsatz';
+
+  const rows = events.map(e => {
+    const dateParts = e.date.split('-');
+    const dateLabel = `${dateParts[2]}.${dateParts[1]}.`;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg-input);border-radius:6px;margin-bottom:4px">
+      <span style="font-size:10px;color:var(--text-ghost);min-width:45px">${dateLabel}</span>
+      <span style="flex:1;font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(e.title)}</span>
+      ${e.artistName ? `<span style="font-size:10px;color:var(--accent);white-space:nowrap">${esc(e.artistName)}</span>` : ''}
+      <span style="font-size:12px;font-weight:700;color:var(--green);min-width:55px;text-align:right">${e.revenue}€</span>
+      ${e.deposit > 0 ? `<span style="font-size:10px;color:var(--yellow);min-width:50px;text-align:right">AZ ${e.deposit}€</span>` : '<span style="min-width:50px"></span>'}
+    </div>`;
+  }).join('');
+
+  const remaining = revData.totalRevenue - revData.totalDeposit;
+  const pctPaid = revData.totalRevenue > 0 ? Math.round((revData.totalDeposit / revData.totalRevenue) * 100) : 0;
+
+  const html = `
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">${MONTHS[month]} – ${locLabel}</div>
+        <div style="color:var(--text-faint);font-size:12px;margin-top:4px">${typeLabel}</div>
+      </div>
+      <button class="modal-close" onclick="closeModal(this.closest('.overlay'))">x</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+        <div style="background:var(--bg-input);border-radius:8px;padding:10px 16px;flex:1;min-width:100px">
+          <div style="font-size:9px;color:var(--text-ghost);text-transform:uppercase;font-weight:600">Gesamt</div>
+          <div style="font-size:22px;font-weight:700;color:var(--green);margin-top:2px">${formatEuro(revData.totalRevenue)}</div>
+        </div>
+        <div style="background:var(--bg-input);border-radius:8px;padding:10px 16px;flex:1;min-width:100px">
+          <div style="font-size:9px;color:var(--text-ghost);text-transform:uppercase;font-weight:600">Angezahlt</div>
+          <div style="font-size:22px;font-weight:700;color:var(--yellow);margin-top:2px">${formatEuro(revData.totalDeposit)}</div>
+          <div style="font-size:9px;color:var(--text-ghost);margin-top:2px">${pctPaid}% bezahlt</div>
+        </div>
+        <div style="background:var(--bg-input);border-radius:8px;padding:10px 16px;flex:1;min-width:100px">
+          <div style="font-size:9px;color:var(--text-ghost);text-transform:uppercase;font-weight:600">Offen</div>
+          <div style="font-size:22px;font-weight:700;color:var(--red);margin-top:2px">${formatEuro(remaining)}</div>
+        </div>
+      </div>
+      <div style="font-size:10px;color:var(--text-muted);font-weight:600;text-transform:uppercase;margin-bottom:8px">${events.length} Termine mit Preis</div>
+      ${rows}
+      ${revData.eventCount > revData.eventsWithRevenue ? `<div style="font-size:10px;color:var(--text-ghost);margin-top:10px;text-align:center">${revData.eventCount - revData.eventsWithRevenue} weitere Termine ohne Preisangabe</div>` : ''}
+    </div>
+  `;
+  showModal(html, '600px');
+}
+
+// --- Module 1: Booking View ---
+function renderBookingView(artists, location) {
+  const m = state.month; const days = DAYS[m];
+  const monthBtns = MONTHS.map((name, i) => `<button class="month-btn ${m === i ? 'active' : ''}" onclick="setMonth(${i})">${name}</button>`).join('');
+  const filterBtns = [{ k: 'all', l: 'Alle' }, { k: 'active', l: 'Aktiv' }].map(f => `<button class="filter-btn ${state.filter === f.k ? 'active' : ''}" onclick="setFilter('${f.k}')">${f.l}</button>`).join('');
+  const legendItems = Object.entries(STATUS).map(([k, v]) => { const bg = v.bg === 'transparent' ? 'var(--bg-input)' : v.bg; const border = v.bg === 'transparent' ? '1px dashed var(--text-faint)' : 'none'; return `<div class="legend-item"><div class="legend-dot" style="background:${bg};border:${border}"></div>${v.label}</div>`; }).join('');
+  const legendBlocked = `<div class="legend-item"><div class="legend-dot" style="background:repeating-linear-gradient(45deg,var(--text-faint),var(--text-faint) 2px,var(--bg-input) 2px,var(--bg-input) 4px)"></div>Anderer Standort</div>`;
+  let headerCells = `<div class="grid-header name-col">${MONTHS[m]}</div>`;
+  for (let d = 1; d <= days; d++) { const date = new Date(2026, m, d); const we = date.getDay() === 0 || date.getDay() === 6; headerCells += `<div class="grid-header ${we ? 'weekend' : ''}">${d}</div>`; }
+  let rows = '';
+  artists.forEach((artist, aIdx) => {
+    const bgName = aIdx % 2 === 0 ? 'var(--bg-row-even)' : 'var(--bg-row-odd)';
+    const dotColor = ARTIST_ST[artist.status]?.raw || '#64748b';
+    rows += `<div class="artist-name" style="background:${bgName}" onclick="showArtistDetail(state.artists.find(a=>a.id==='${artist.id}'))"><span class="artist-dot" style="background:${dotColor}"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(artist.name)}</span></div>`;
+    for (let d = 1; d <= days; d++) {
+      const date = new Date(2026, m, d); const we = date.getDay() === 0 || date.getDay() === 6;
+      const bk = getBk(location, artist.id, m, d); const blocked = isElsewhere(location, artist.id, m, d);
+      let cls = 'cell'; let bg = aIdx % 2 === 0 ? 'var(--bg-row-even)' : 'var(--bg-row-odd)';
+      if (we && !bk && !blocked) bg = aIdx % 2 === 0 ? '#0e1328' : '#12162a';
+      if (bk) cls += ` ${STATUS[bk.status]?.cls || ''}`; else if (blocked) cls += ' blocked';
+      let onclick = '';
+      if (blocked && !bk) onclick = `onclick="toast('${esc(artist.name)} ist am anderen Standort gebucht','error')"`;
+      else if (artist.status !== 'active') onclick = `onclick="toast('${esc(artist.name)} ist noch nicht aktiv','warning')"`;
+      else onclick = `onclick="showBookingModal(state.artists.find(a=>a.id==='${artist.id}'),${m},${d},'${location}')"`;
+      const style = (!bk && !blocked) ? `style="background:${bg}"` : '';
+      rows += `<div class="${cls}" ${style} ${onclick}></div>`;
+    }
+  });
+  const cols = `110px repeat(${days}, 1fr)`;
+  return `<div class="month-bar"><div class="months">${monthBtns}</div><div class="filter-group">${filterBtns}</div></div>${renderRevenueSection(location)}<div class="legend">${legendItems}${legendBlocked}</div><div class="grid-wrapper"><div class="grid" style="grid-template-columns:${cols}">${headerCells}${rows}</div></div><div class="hint">Klick Name -> Stammdaten . Klick Zelle -> Buchung . Schraffiert = anderer Standort . Klick Monatskarte -> Umsatz-Details</div>`;
+}
+
+// --- Module 1: Pipeline View ---
+let dragCandidateId = null;
+function renderPipelineView() {
+  const grouped = {}; PHASES.forEach(p => grouped[p.key] = []);
+  state.pipeline.forEach(c => { if (grouped[c.phase]) grouped[c.phase].push(c); });
+  const columns = PHASES.map(phase => {
+    const cards = grouped[phase.key].map(c => { const convertBtn = phase.key === 'visa_received' ? `<button class="convert-btn" onclick="event.stopPropagation();convertCandidate(state.pipeline.find(x=>x.id==='${c.id}'))">-> Als Künstler übernehmen</button>` : ''; return `<div class="candidate-card" draggable="true" ondragstart="dragCandidateId='${c.id}';this.classList.add('dragging')" ondragend="dragCandidateId=null;this.classList.remove('dragging')" onclick="showCandidateModal(state.pipeline.find(x=>x.id==='${c.id}'),false)"><div style="display:flex;justify-content:space-between;margin-bottom:3px"><span class="candidate-name">${esc(c.name)}</span><span class="candidate-nat">${esc(c.nationality || '')}</span></div>${c.specialty ? `<div class="candidate-spec">${esc(c.specialty)}</div>` : ''}${c.notes ? `<div class="candidate-notes">${esc(c.notes)}</div>` : ''}${convertBtn}</div>`; }).join('');
+    const empty = grouped[phase.key].length === 0 ? '<div class="phase-empty">Leer</div>' : '';
+    return `<div class="phase-col" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="event.preventDefault();this.classList.remove('dragover');if(dragCandidateId){const c=state.pipeline.find(x=>x.id===dragCandidateId);if(c)updateCandidate(c.id,{...c,phase:'${phase.key}'})}"><div class="phase-header"><span class="phase-icon">${phase.icon}</span><div style="flex:1;min-width:0"><div class="phase-label" style="color:${phase.color}">${phase.label}</div><div class="phase-desc">${phase.desc}</div></div><span class="phase-count" style="background:${phase.color}22;color:${phase.color}">${grouped[phase.key].length}</span></div>${cards}${empty}</div>`;
+  }).join('');
+  return `<div class="pipeline-header"><div><div class="pipeline-title">Recruiting Pipeline</div><div class="pipeline-sub">${state.pipeline.length} Kandidat${state.pipeline.length !== 1 ? 'en' : ''} . Drag & Drop</div></div><button class="btn btn-primary" onclick="showCandidateModal(null,true)">+ Neuer Kandidat</button></div><div class="pipeline-board">${columns}</div>`;
+}
+
+// --- Module 2: Work Schedule View ---
+function renderWorkScheduleView() {
+  const loc = state.workTab; const cfg = getLocConfig(loc); const staffIds = cfg.staffArtistIds || [];
+  const staffArtists = state.artists.filter(a => staffIds.includes(a.id));
+  const weekDates = getWeekDates(state.workWeekStart); const min = cfg.minStaff || 2;
+  const wS = weekDates[0]; const wE = weekDates[5];
+  const weekLabel = `${wS.getDate()}.${MONTHS[wS.getMonth()]} - ${wE.getDate()}.${MONTHS[wE.getMonth()]}`;
+  const locTabs = `<div class="ws-loc-tabs"><button class="ws-loc-tab ${loc === 'weil' ? 'active' : ''}" onclick="setWorkTab('weil')">[pin] Weil am Rhein</button><button class="ws-loc-tab ${loc === 'achern' ? 'active' : ''}" onclick="setWorkTab('achern')">[pin] Achern</button></div>`;
+  const weekNav = `<div class="ws-week-nav"><button class="ws-nav-btn" onclick="shiftWorkWeek(-1)"><</button><span class="ws-week-label">${weekLabel}</span><button class="ws-nav-btn" onclick="shiftWorkWeek(1)">></button><button class="ws-today-btn" onclick="goToCurrentWeek()">Today</button></div>`;
+  const legend = `<div class="ws-legend">${Object.entries(WORK_STATUS).map(([k, v]) => `<div class="ws-legend-item"><div class="ws-legend-dot" style="background:${v.bg}"></div>${v.label}</div>`).join('')}<div class="ws-legend-item"><div class="ws-legend-dot" style="background:transparent;border:2px dashed #22c55e55"></div>Default (Working)</div><div class="ws-legend-item"><span style="color:#a78bfa;font-size:12px">(heart)</span>&nbsp;Couple</div></div>`;
+  const cols = `140px repeat(6, 1fr)`;
+  let headerHTML = `<div class="ws-header-cell name-col" style="background:var(--bg-root)">Artist</div>`;
+  weekDates.forEach((d, i) => { const isT = isToday(d); headerHTML += `<div class="ws-header-cell ${isT ? 'ws-today-hdr' : ''}"><div style="font-weight:700">${WS_DAY_SHORT[i]}</div><div style="font-size:9px;color:${isT ? 'var(--accent)' : 'var(--text-ghost)'};margin-top:2px">${d.getDate()}.${MONTHS[d.getMonth()]}</div></div>`; });
+  let rowsHTML = '';
+  if (staffArtists.length === 0) {
+    rowsHTML = `<div class="ws-empty">No artists assigned to <strong>${loc === 'weil' ? 'Weil am Rhein' : 'Achern'}</strong> yet.<br><button class="btn btn-primary btn-sm" style="margin-top:14px" onclick="showWorkAdminModal('${loc}')">cfg Setup Location</button></div>`;
+  } else {
+    staffArtists.forEach((artist, aIdx) => {
+      const bgRow = aIdx % 2 === 0 ? 'var(--bg-row-even)' : 'var(--bg-row-odd)';
+      const isInCouple = (cfg.couples || []).some(pair => pair.includes(artist.id));
+      const dotColor = ARTIST_ST[artist.status]?.raw || '#64748b';
+      rowsHTML += `<div class="ws-name-cell" style="background:${bgRow}" onclick="showWorkWeekModal('${artist.id}','${loc}')"><span class="artist-dot" style="background:${dotColor}"></span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(artist.name)}</span>${isInCouple ? '<span class="ws-couple-badge">(heart)</span>' : ''}</div>`;
+      weekDates.forEach((d) => {
+        const dateStr = dateToStr(d); const status = getWorkStatus(artist.id, loc, d); const ws = WORK_STATUS[status];
+        const isDefault = !getWorkEntry(artist.id, loc, d); const past = isPast(d); const isT = isToday(d);
+        const cellBg = isDefault ? bgRow : ws.bg + '22';
+        const leftBorder = isT ? '2px solid rgba(96,165,250,0.5)' : isDefault ? `1px solid ${ws.bg}30` : `1px solid ${ws.bg}55`;
+        rowsHTML += `<div class="ws-cell ${past ? 'ws-past' : ''} ${isT ? 'ws-today-col' : ''}" style="background:${cellBg};border-left:${leftBorder}" onclick="${past ? '' : `showWorkDayModal('${artist.id}','${loc}','${dateStr}')`}"><span style="font-size:${isDefault ? '16px' : '14px'};line-height:1;color:${isDefault ? 'var(--text-ghost)' : ws.bg}">${isDefault ? '.' : ws.icon}</span><span style="font-size:9px;font-weight:700;color:${isDefault ? 'var(--text-ghost)' : ws.bg}">${ws.short}</span></div>`;
+      });
+    });
+  }
+  let totalsHTML = `<div class="ws-totals-label">Staff</div>`;
+  weekDates.forEach(d => { const present = countPresent(loc, d); const oncall = staffIds.filter(id => getWorkStatus(id, loc, d) === 'oncall').length; const ok = present >= min || staffIds.length === 0; const isT = isToday(d); totalsHTML += `<div class="ws-totals-row-cell ${!ok ? 'warn' : ''}" style="${isT ? 'border-left:2px solid rgba(96,165,250,0.5)' : ''}"><span style="color:${ok ? 'var(--green)' : 'var(--red)'}">${staffIds.length > 0 ? `${present}${!ok ? ' (!)' : ''}` : '-'}</span>${oncall > 0 ? `<span style="color:#f97316;font-size:8px;font-weight:600">+${oncall}[tel]</span>` : ''}</div>`; });
+  const criticalDays = staffIds.length > 0 ? weekDates.filter(d => countPresent(loc, d) < min).length : 0;
+  const totalOncall = weekDates.reduce((sum, d) => sum + staffIds.filter(id => getWorkStatus(id, loc, d) === 'oncall').length, 0);
+  const summaryHTML = staffArtists.length > 0 ? `<div class="ws-summary"><div class="ws-summary-card"><div class="ws-summary-label">Min. Staff / day</div><div class="ws-summary-val" style="color:var(--accent)">${min}</div></div><div class="ws-summary-card"><div class="ws-summary-label">Artists assigned</div><div class="ws-summary-val" style="color:var(--text)">${staffIds.length}</div></div><div class="ws-summary-card"><div class="ws-summary-label">On-call this week</div><div class="ws-summary-val" style="color:var(--orange)">${totalOncall}</div></div><div class="ws-summary-card"><div class="ws-summary-label">Critical days</div><div class="ws-summary-val" style="color:${criticalDays > 0 ? 'var(--red)' : 'var(--green)'}">${criticalDays}</div></div></div><div class="hint">Click artist name -> week view . Click cell -> change day status . (heart) = couple . Past days are locked</div>` : '';
+  return `<div class="ws-nav"><div class="ws-left">${locTabs}${weekNav}</div><button class="btn btn-secondary btn-sm" onclick="showWorkAdminModal('${loc}')">cfg Manage</button></div>${legend}<div class="ws-grid-wrap"><div class="ws-grid" style="grid-template-columns:${cols}">${headerHTML}${rowsHTML}${staffArtists.length > 0 ? totalsHTML : ''}</div></div>${summaryHTML}`;
+}
+
+// --- MODULE 3: TODO View ---
+function renderTodoView() {
+  const todos = state.todos;
+  const total = todos.length;
+  const done = todos.filter(t => t.status === 'erledigt').length;
+  const open = todos.filter(t => t.status === 'Offen').length;
+  const inProgress = todos.filter(t => t.status === 'In Arbeit').length;
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+  // Filter
+  let filtered = [...todos];
+  const f = state.todoFilter;
+  if (f.priority !== 'all') filtered = filtered.filter(t => t.priority === f.priority);
+  if (f.kategorie !== 'all') filtered = filtered.filter(t => t.kategorie === f.kategorie);
+  if (f.status !== 'all') filtered = filtered.filter(t => t.status === f.status);
+  if (f.person !== 'all') filtered = filtered.filter(t => t.zustaendig === f.person);
+  if (f.search) { const s = f.search.toLowerCase(); filtered = filtered.filter(t => (t.aufgabe||'').toLowerCase().includes(s) || (t.notizen||'').toLowerCase().includes(s) || (t.kategorie||'').toLowerCase().includes(s)); }
+  if (state.todoHideCompleted) filtered = filtered.filter(t => t.status !== 'erledigt');
+
+  // Sort
+  const prioOrder = { A: 1, B: 2, C: 3, D: 4, E: 5, P: 6 };
+  const { field, dir } = state.todoSort;
+  filtered.sort((a, b) => {
+    let va, vb;
+    if (field === 'priority') { va = prioOrder[a.priority] || 99; vb = prioOrder[b.priority] || 99; }
+    else { va = (a[field] || '').toString().toLowerCase(); vb = (b[field] || '').toString().toLowerCase(); }
+    const cmp = va < vb ? -1 : va > vb ? 1 : 0;
+    return dir === 'asc' ? cmp : -cmp;
+  });
+
+  // Unique values for filters
+  const kategorien = [...new Set(todos.map(t => t.kategorie).filter(Boolean))].sort();
+  const personen = [...new Set(todos.map(t => t.zustaendig).filter(Boolean))].sort();
+
+  const arrow = (f2) => state.todoSort.field === f2 ? (state.todoSort.dir === 'asc' ? ' ▲' : ' ▼') : '';
+
+  // Dashboard
+  const dashboard = `<div class="todo-dashboard">
+    <div class="todo-stat"><div class="todo-stat-label">Gesamt</div><div class="todo-stat-val" style="color:var(--accent)">${total}</div></div>
+    <div class="todo-stat"><div class="todo-stat-label">Fortschritt</div><div class="todo-stat-val" style="color:var(--green)">${pct}%</div><div class="todo-progress"><div class="todo-progress-bar" style="width:${pct}%"></div></div></div>
+    <div class="todo-stat"><div class="todo-stat-label">Offen</div><div class="todo-stat-val" style="color:var(--red)">${open}</div></div>
+    <div class="todo-stat"><div class="todo-stat-label">In Arbeit</div><div class="todo-stat-val" style="color:var(--yellow)">${inProgress}</div></div>
+    <div class="todo-stat"><div class="todo-stat-label">Erledigt</div><div class="todo-stat-val" style="color:var(--green)">${done}</div></div>
+  </div>`;
+
+  // Filters
+  const katOpts = `<option value="all">Alle Kategorien</option>${kategorien.map(k => `<option value="${esc(k)}" ${f.kategorie === k ? 'selected' : ''}>${esc(k)}</option>`).join('')}`;
+  const persOpts = `<option value="all">Alle Personen</option>${personen.map(p => `<option value="${esc(p)}" ${f.person === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}`;
+  const prioOpts = `<option value="all">Alle Prios</option>${['A','B','C','D','E','P'].map(p => `<option value="${p}" ${f.priority === p ? 'selected' : ''}>${p}</option>`).join('')}`;
+  const statusOpts = `<option value="all">Alle Status</option><option value="Offen" ${f.status === 'Offen' ? 'selected' : ''}>Offen</option><option value="In Arbeit" ${f.status === 'In Arbeit' ? 'selected' : ''}>In Arbeit</option><option value="erledigt" ${f.status === 'erledigt' ? 'selected' : ''}>Erledigt</option>`;
+
+  const filters = `<div class="todo-filters">
+    <input type="text" placeholder="Suche..." value="${esc(f.search)}" oninput="setTodoFilter('search',this.value)">
+    <select onchange="setTodoFilter('priority',this.value)">${prioOpts}</select>
+    <select onchange="setTodoFilter('kategorie',this.value)">${katOpts}</select>
+    <select onchange="setTodoFilter('status',this.value)">${statusOpts}</select>
+    <select onchange="setTodoFilter('person',this.value)">${persOpts}</select>
+    <label class="todo-check"><input type="checkbox" ${state.todoHideCompleted ? 'checked' : ''} onchange="toggleHideCompleted()"> Erledigte ausblenden</label>
+    <span class="todo-count">${filtered.length} / ${total} Aufgaben</span>
+    <button class="btn btn-primary btn-sm" onclick="showTodoModal()" style="margin-left:auto">+ Neue Aufgabe</button>
+  </div>`;
+
+  if (total === 0) {
+    return `${dashboard}${filters}<div class="todo-empty"><div style="font-size:40px;margin-bottom:12px">📋</div><div style="font-size:16px;font-weight:600;margin-bottom:6px">Noch keine Aufgaben</div><div style="font-size:12px;margin-bottom:16px">Erstelle Aufgaben oder importiere die Standard-Daten</div><button class="todo-import-btn" onclick="importDefaultTodos()">📥 Standard-Daten importieren</button></div>`;
+  }
+
+  // Table rows
+  const statusCls = (s) => s === 'erledigt' ? 'todo-status-erledigt' : s === 'In Arbeit' ? 'todo-status-arbeit' : 'todo-status-offen';
+  const deadlineCls = (dl, status) => {
+    if (!dl || status === 'erledigt') return 'todo-deadline-ok';
+    const today = new Date(); today.setHours(0,0,0,0);
+    const d = new Date(dl + 'T00:00:00');
+    const diff = (d - today) / 86400000;
+    if (diff < 0) return 'todo-deadline-overdue';
+    if (diff <= 7) return 'todo-deadline-soon';
+    return 'todo-deadline-ok';
+  };
+  const rows = filtered.map(t => {
+    const isDone = t.status === 'erledigt';
+    const dlCls = deadlineCls(t.deadline, t.status);
+    const hasNotes = t.notizen && t.notizen.trim();
+    return `<tr class="${isDone ? 'todo-done' : ''}">
+      <td><span class="todo-prio todo-prio-${t.priority || 'E'}">${esc(t.priority || '-')}</span></td>
+      <td>${t.kategorie ? `<span class="todo-kategorie-badge">${esc(t.kategorie)}</span>` : '<span style="color:var(--text-ghost)">-</span>'}</td>
+      <td class="todo-aufgabe-cell" onclick="showTodoEditModal('${t.id}','aufgabe')">${esc(t.aufgabe || '-')}</td>
+      <td class="${dlCls}" style="white-space:nowrap;font-size:12px">${esc(t.deadline || '-')}</td>
+      <td><span class="todo-person-badge">${esc(t.zustaendig || '-')}</span></td>
+      <td><button class="todo-status ${statusCls(t.status)}" onclick="toggleTodoStatus('${t.id}')">${esc(t.status || 'Offen')}</button></td>
+      <td class="todo-notizen-cell" onclick="this.querySelector('.todo-notizen-text')?.classList.toggle('expanded')" title="${esc(t.notizen || '')}"><div class="todo-notizen-text">${hasNotes ? esc(t.notizen) : '<span style="color:var(--text-ghost)">-</span>'}</div></td>
+      <td><div class="todo-actions"><button class="todo-action-btn" onclick="showTodoModal(state.todos.find(x=>x.id==='${t.id}'))" title="Bearbeiten">✏️</button><button class="todo-action-btn" onclick="if(confirm('Aufgabe l\u00f6schen?'))deleteTodo('${t.id}')" title="L\u00f6schen">🗑️</button></div></td>
+    </tr>`;
+  }).join('');
+
+  const table = `<div class="todo-table-wrap"><table class="todo-table">
+    <thead><tr>
+      <th onclick="setTodoSort('priority')" style="width:50px">Prio${arrow('priority')}</th>
+      <th onclick="setTodoSort('kategorie')" style="width:100px">Kategorie${arrow('kategorie')}</th>
+      <th onclick="setTodoSort('aufgabe')">Aufgabe${arrow('aufgabe')}</th>
+      <th onclick="setTodoSort('deadline')" style="width:80px">Deadline${arrow('deadline')}</th>
+      <th onclick="setTodoSort('zustaendig')" style="width:90px">Zuständig${arrow('zustaendig')}</th>
+      <th onclick="setTodoSort('status')" style="width:80px">Status${arrow('status')}</th>
+      <th style="width:160px">Notizen</th>
+      <th style="width:60px"></th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+
+  return `${dashboard}${filters}${table}`;
+}
+
+// --- TODO Modal ---
+function showTodoModal(existing) {
+  const isNew = !existing;
+  const data = existing || { priority: 'A', kategorie: '', aufgabe: '', deadline: '', zustaendig: '', status: 'Offen', notizen: '' };
+  const prioOpts = ['A','B','C','D','E','P'].map(p => `<option value="${p}" ${data.priority === p ? 'selected' : ''}>${p}</option>`).join('');
+  const statusOpts = ['Offen','In Arbeit','erledigt'].map(s => `<option value="${s}" ${data.status === s ? 'selected' : ''}>${s}</option>`).join('');
+  const html = `
+    <div class="modal-header"><div class="modal-title">${isNew ? 'Neue Aufgabe' : 'Aufgabe bearbeiten'}</div><button class="modal-close" onclick="closeModal(this.closest('.overlay'))">x</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field"><label>Priorität</label><select id="td-prio">${prioOpts}</select></div>
+        <div class="field"><label>Kategorie</label><input id="td-kat" value="${esc(data.kategorie || '')}" placeholder="z.B. Finanzen, Marketing..."></div>
+        <div class="field"><label>Zuständig</label><input id="td-person" value="${esc(data.zustaendig || '')}" placeholder="Name"></div>
+        <div class="field"><label>Deadline</label><input id="td-deadline" value="${esc(data.deadline || '')}" placeholder="YYYY-MM-DD"></div>
+        <div class="field"><label>Status</label><select id="td-status">${statusOpts}</select></div>
+      </div>
+      <div class="field" style="margin-top:12px"><label>Aufgabe</label><textarea id="td-aufgabe" rows="2">${esc(data.aufgabe || '')}</textarea></div>
+      <div class="field" style="margin-top:12px"><label>Notizen</label><textarea id="td-notizen" rows="2">${esc(data.notizen || '')}</textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal(this.closest('.overlay'))">Abbrechen</button>
+      <button class="btn btn-primary" onclick="window._tdSave()">Speichern</button>
+    </div>
+  `;
+  const overlay = showModal(html, '520px');
+  window._tdSave = () => {
+    const d = {
+      priority: overlay.querySelector('#td-prio')?.value || 'A',
+      kategorie: overlay.querySelector('#td-kat')?.value?.trim() || '',
+      aufgabe: overlay.querySelector('#td-aufgabe')?.value?.trim() || '',
+      deadline: overlay.querySelector('#td-deadline')?.value?.trim() || '',
+      zustaendig: overlay.querySelector('#td-person')?.value?.trim() || '',
+      status: overlay.querySelector('#td-status')?.value || 'Offen',
+      notizen: overlay.querySelector('#td-notizen')?.value || '',
+    };
+    if (!d.aufgabe) return toast('Aufgabe ist Pflichtfeld', 'error');
+    if (isNew) addTodo(d); else updateTodo(existing.id, d);
+    closeModal(overlay);
+  };
+}
+
+function showTodoEditModal(id, field) {
+  const todo = state.todos.find(t => t.id === id);
+  if (todo) showTodoModal(todo);
+}
+
+// --- Default TODO Data Import ---
+const DEFAULT_TODOS = [
+{p:"A",k:"Finanzen",a:"Todo Liste Maria fertig",d:"",z:"Raffi",s:"Offen",n:""},
+{p:"A",k:"Finanzen",a:"Schuldner Liste durchgehen",d:"",z:"Raffi",s:"Offen",n:""},
+{p:"A",k:"Finanzen",a:"2 Accounts SumUp",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Finanzen",a:"Steuerberater super wichtig",d:"",z:"Raffi",s:"In Arbeit",n:""},
+{p:"A",k:"Finanzen",a:"Partner Portal Zugang erstellen mit Zora Nummer",d:"",z:"Benny",s:"In Arbeit",n:""},
+{p:"A",k:"Finanzen",a:"Tattoo Würfel",d:"",z:"gregor",s:"Offen",n:""},
+{p:"A",k:"Finanzen",a:"Dokument Valentina fehlende Rechnungen",d:"",z:"Raffi",s:"In Arbeit",n:""},
+{p:"A",k:"Finanzen",a:"Nachschauen wie das funktioniert wegen Steuer Raffi",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Finanzen",a:"Tebo: wann wie viel + Kamera + Strom für Schild und Fernseher",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Finanzen",a:"CEV prüfen genau wie viel offen + Plan für Dauerauftrag",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Finanzen",a:"Schulden kategorisieren und planen wann wie abbezahlen",d:"",z:"Raffi",s:"Offen",n:""},
+{p:"A",k:"Finanzen",a:"Ohr anrufen wegen Inkasso",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Finanzen",a:"Prohumanis checken und proaktiv schauen was los ist",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Finanzen",a:"System bauen: Finanzen übersichtlich dargestellt",d:"",z:"gregor",s:"Offen",n:""},
+{p:"A",k:"Finanzen",a:"Klären von Storno Rechnungen / Vorgehen mit Post Rechnungen mit Maria",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Finanzen",a:"Lexware vollständig durchbuchen dann automatisiert übergeben",d:"",z:"gregor",s:"Offen",n:""},
+{p:"A",k:"Finanzen",a:"Finanzamt offene Probleme klären proaktiv: Gewerbesteuer 24 Lohnsteuer",d:"",z:"Raffi",s:"Offen",n:"Gebühren vermeiden!"},
+{p:"A",k:"Finanzen",a:"Schuldner anschreiben",d:"",z:"Raffi",s:"Offen",n:""},
+{p:"A",k:"Marketing",a:"Baumaktion für Bewertungen Weil am Rhein",d:"",z:"gregor",s:"In Arbeit",n:""},
+{p:"A",k:"Marketing",a:"App Usecase und API",d:"",z:"gregor",s:"Offen",n:""},
+{p:"A",k:"Marketing",a:"Airtable Bilder einspielen für neue Webseite",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Marketing",a:"Osterkalender aktivieren",d:"",z:"Benny",s:"In Arbeit",n:""},
+{p:"A",k:"Marketing",a:"Osterkalender bewerben auf Insta",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Marketing",a:"Monatliche Email Kampagnen HelloAgain starten",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Marketing",a:"Logins für Tree API besorgen",d:"",z:"gregor",s:"Offen",n:""},
+{p:"A",k:"Marketing",a:"Landing Page Tree für Artefact Tattoo und Post",d:"",z:"gregor",s:"Offen",n:""},
+{p:"A",k:"Marketing",a:"Optimieren für Google Ads",d:"",z:"gregor",s:"Offen",n:""},
+{p:"A",k:"Marketing",a:"Chris Freitag in die Schweiz (Werbung)",d:"",z:"Chris",s:"Offen",n:""},
+{p:"A",k:"Marketing",a:"Eva Schild Artefact: Status checken",d:"",z:"Benny",s:"Offen",n:"in the making"},
+{p:"A",k:"Marketing",a:"Qualität der Postings Insta verbessern + System Beatriz und Paki",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Marketing",a:"Ideen sammeln für Pakis High-End Videos mit Kamera 2x/Woche",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Marketing",a:"Mehr Personal Videos drehen von Benny und Raffi",d:"",z:"Benny/Raffi",s:"Offen",n:""},
+{p:"A",k:"Marketing",a:"Content System mit Agent automatisieren",d:"",z:"gregor",s:"Offen",n:""},
+{p:"A",k:"Marketing",a:"Fertigstellen der neuen Website + QA Link in Airtable",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Marketing",a:"Hosting Website und dann Google Ads starten",d:"",z:"gregor",s:"Offen",n:""},
+{p:"A",k:"Marketing",a:"Insta Weil am Rhein in Superchat + Bot automatisch antworten",d:"",z:"gregor",s:"Offen",n:""},
+{p:"A",k:"Marketing",a:"HelloAgain anbinden per API Superchat",d:"",z:"gregor",s:"Offen",n:""},
+{p:"A",k:"Marketing",a:"HelloAgain Content erstellen und schedulen",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Marketing",a:"HelloAgain aktiv promoten als Dreh- und Angelpunkt",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Marketing",a:"Verlosung Rolex Aktion planen und medial in Szene setzen",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Marketing",a:"Plan für Laser Videos + Donnerstag Content Day",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Marketing",a:"Landing Page vorbereiten für Laser Frau",d:"",z:"gregor",s:"Offen",n:""},
+{p:"A",k:"Operations",a:"Festnetz Weil am Rhein",d:"",z:"Benny",s:"In Arbeit",n:""},
+{p:"A",k:"Operations",a:"Stencil Printer Amazon Replacement",d:"",z:"Benny",s:"In Arbeit",n:""},
+{p:"A",k:"Operations",a:"Chris neue Karte Zora",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Operations",a:"HelloAgain App API connect neue Usecase",d:"",z:"gregor",s:"Offen",n:""},
+{p:"A",k:"Operations",a:"Künstlerkasse Fragebogen ausfüllen",d:"",z:"Fede",s:"In Arbeit",n:""},
+{p:"A",k:"Operations",a:"Video Fede schalten TikTok und Insta",d:"",z:"gregor",s:"In Arbeit",n:""},
+{p:"A",k:"Operations",a:"UTM Parameter Link weitergeben an HelloAgain",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Operations",a:"Alle Email abändern auf info@artefact-tattoo.de",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Operations",a:"Meta Quest verkaufen eBay",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Operations",a:"Agent für Meta Ads Reporting an WhatsApp/Google Sheets",d:"",z:"gregor",s:"Offen",n:""},
+{p:"A",k:"Operations",a:"Funkverstärker Festnetz anfragen Rheincenter",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Operations",a:"Tisch zum Ausfüllen für Post Mathias",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Operations",a:"Design/Folierung für Fenster Post",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Operations",a:"Plan erstellen Künstler Jahr 2026",d:"",z:"Benny",s:"In Arbeit",n:""},
+{p:"A",k:"Operations",a:"Dokumente Alejo",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Operations",a:"Maria Termin für Abrechnung/Visa",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Operations",a:"Raffa Come Back evtl August",d:"",z:"Benny",s:"Offen",n:"keep in contact"},
+{p:"A",k:"Operations",a:"Gewerbe Anmeldung Weil Email",d:"",z:"Benny",s:"Offen",n:"christopher.klein@weil-am-rhein.de"},
+{p:"A",k:"Operations",a:"Call TikTok",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Operations",a:"Februar zahlen",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Operations",a:"Dokumente durchgehen",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Operations",a:"Post Weil: Schild außen - Meeting mit Post + Karamann Mössinger",d:"",z:"Benny",s:"Offen",n:"Mössinger will technischen Plan"},
+{p:"A",k:"Operations",a:"Post Schild im Center: Karamann Termin für Begehung + Freigabe",d:"",z:"Benny",s:"Offen",n:"Angele Kostenvoranschlag"},
+{p:"A",k:"Operations",a:"Fehlendes Material Weil am Rhein bestellen",d:"",z:"Valeria",s:"Offen",n:""},
+{p:"A",k:"Operations",a:"System bauen: Automatisierung Inventur",d:"",z:"gregor",s:"Offen",n:""},
+{p:"A",k:"Operations",a:"System bauen: Inventar Wohnungen mit Geld-Abzug bei Schäden",d:"",z:"gregor",s:"Offen",n:""},
+{p:"A",k:"Operations",a:"Artist Plan 2026 + System Benny alle Daten sauber hinterlegen",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Operations",a:"System erstellen: pro Standort Tool für Verträge/Kundennummern/Zählerstände",d:"",z:"gregor",s:"Offen",n:""},
+{p:"A",k:"Operations",a:"Inkasso Email bearbeiten für Umfirmierung + neue Logins",d:"",z:"Benny",s:"Offen",n:"ZIP Datei in Emails"},
+{p:"A",k:"Operations",a:"Meeting Rebwar und New Deal",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Recht",a:"Lörrach anmelden Xoncention",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Recht",a:"Lörrach Gewerbe Amt Anmeldung online",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Recht",a:"Inkasso Schweiz Mathias Einspruch schriftlich",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Recht",a:"Visa Dilan + Sergio: Finanzdaten + Steueranmeldung + Krankenkasse",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Recht",a:"Garre: Prozess Paragraf 21 - Working Holiday Problem",d:"",z:"Benny",s:"Offen",n:"WICHTIG! Nur 6 Monate pro Firma"},
+{p:"A",k:"Recht",a:"Umfirmierung endgültig sauber abschließen",d:"",z:"Raffi",s:"Offen",n:""},
+{p:"A",k:"Auto",a:"Volvo und Audi Status checken",d:"",z:"Benny",s:"Offen",n:""},
+{p:"A",k:"Auto",a:"Autohaus König anrufen Rückruf Auto Benny",d:"",z:"Benny",s:"Offen",n:""},
+{p:"B",k:"Recht",a:"Umfirmierungsplan (GbR -> GmbH -> Holding) finalisieren",d:"",z:"Raffi",s:"In Arbeit",n:""},
+{p:"B",k:"Recht",a:"Neuen Steuerberater finden",d:"",z:"Raffi",s:"In Arbeit",n:""},
+{p:"B",k:"Recht",a:"Exakte Schritte der Umfirmierung dokumentieren",d:"",z:"Raffi",s:"In Arbeit",n:""},
+{p:"B",k:"Recht",a:"Gesellschaftsvertrag unterschreiben",d:"",z:"Raffi",s:"Offen",n:""},
+{p:"B",k:"Recht",a:"Offene Rechnungen Valentina klären",d:"",z:"Raffi",s:"In Arbeit",n:""},
+{p:"B",k:"Recht",a:"Offene Rechnungen Maria klären",d:"",z:"Raffi",s:"In Arbeit",n:""},
+{p:"B",k:"Recht",a:"Firma Gründen Dubai/USA/Studiolo prüfen",d:"",z:"Benny",s:"Offen",n:""},
+{p:"B",k:"Finanzen",a:"Trennung Achern und Weil KPIs",d:"",z:"gregor",s:"Offen",n:""},
+{p:"B",k:"Marketing",a:"Taschenmesser Ad Schweiz + Matterhorn Ad",d:"",z:"gregor",s:"Offen",n:""},
+{p:"B",k:"Marketing",a:"SBB Tattoo Ticket Kampagne",d:"",z:"gregor",s:"Offen",n:""},
+{p:"B",k:"Marketing",a:"2x 75 Zoll Fernseher + Werbesystem auswählen",d:"",z:"Benny",s:"Offen",n:"wenn Geld da"},
+{p:"B",k:"Marketing",a:"Happy Hour planen + promoten",d:"",z:"Benny",s:"Offen",n:""},
+{p:"B",k:"Marketing",a:"Post Weil: Flyer verteilen",d:"",z:"Benny",s:"Offen",n:""},
+{p:"B",k:"Marketing",a:"Samstag Flyer Day mit bezahlten Promotern",d:"",z:"Benny",s:"Offen",n:"professional"},
+{p:"B",k:"Marketing",a:"Studiolo Ausbau + Reaktivierung Customer",d:"",z:"Benny",s:"Offen",n:""},
+{p:"B",k:"Marketing",a:"Sommer Action einbinden in Content",d:"",z:"Benny",s:"Offen",n:""},
+{p:"B",k:"Marketing",a:"Neue Verlosungsaktion -> monatliches Community Event",d:"",z:"Benny",s:"Offen",n:""},
+{p:"B",k:"Marketing",a:"Mädels fragen ob Flyer verteilen",d:"",z:"Benny",s:"Offen",n:""},
+{p:"B",k:"Marketing",a:"Lokale Aktionen Weil: Fitness Koop etc",d:"",z:"Benny",s:"Offen",n:""},
+{p:"B",k:"Marketing",a:"Koop mit dem Kino Insta etc",d:"",z:"Benny",s:"Offen",n:""},
+{p:"B",k:"Marketing",a:"Gemeinde anrufen für Werbeflächen/Hänger",d:"",z:"Benny",s:"Offen",n:"Vorschlag Chris"},
+{p:"B",k:"Marketing",a:"Wochenende planen mit Influencer",d:"",z:"Benny",s:"Offen",n:""},
+{p:"B",k:"Operations",a:"Notion Artefact System erstellen (Franchise-Blick)",d:"",z:"gregor",s:"Offen",n:""},
+{p:"B",k:"Operations",a:"Sonntag streichen und Deko Sascha",d:"",z:"Sascha",s:"Offen",n:"Temu Lieferung"},
+{p:"B",k:"Operations",a:"Teppich Weil: Status Produktion checken",d:"",z:"Benny",s:"Offen",n:""},
+{p:"B",k:"Operations",a:"Post Weil: Verkauf von Produkten klären",d:"",z:"Benny",s:"Offen",n:""},
+{p:"B",k:"Operations",a:"Etliche weitere TODOs Studiolo -> eigene Liste",d:"",z:"Benny",s:"Offen",n:""},
+{p:"B",k:"Operations",a:"Rebwar evtl den Raum von Romina",d:"",z:"Benny",s:"Offen",n:""},
+{p:"B",k:"HR",a:"Öffnungszeiten anpassen wenn Samstags-Mädchen da",d:"",z:"Benny",s:"Offen",n:""},
+{p:"C",k:"Operations",a:"Notion final bauen (Struktur)",d:"",z:"Benny",s:"In Arbeit",n:""},
+{p:"C",k:"Operations",a:"Alle Mitarbeiter Notion App + Zuständigkeiten",d:"",z:"Benny",s:"Offen",n:""},
+{p:"C",k:"Operations",a:"Daily Tasks in Notion mit Foto-Beweisen",d:"",z:"Benny",s:"Offen",n:""},
+{p:"C",k:"Operations",a:"Federico Aufgabenstruktur in Notion",d:"",z:"Benny",s:"Offen",n:""},
+{p:"C",k:"Operations",a:"SOPs + Knowledge DB für Shop Manager",d:"",z:"Benny",s:"Offen",n:""},
+{p:"C",k:"Operations",a:"Alle Abläufe filmen und dokumentieren",d:"",z:"Beatrice",s:"Offen",n:""},
+{p:"C",k:"Operations",a:"SOP und Knowledge DB für Housekeeping",d:"",z:"Beatrice",s:"Offen",n:""},
+{p:"C",k:"Operations",a:"Inventarliste + Check-in/Checkout SOP",d:"",z:"Beatrice",s:"Offen",n:""},
+{p:"C",k:"Operations",a:"Putzfrau Achern oder Fede Ansage",d:"",z:"Benny",s:"Offen",n:""},
+{p:"C",k:"Operations",a:"Weitere Regale ja/nein entscheiden",d:"",z:"Benny",s:"Offen",n:""},
+{p:"D",k:"Marketing",a:"Deko besorgen für Weil",d:"",z:"Benny",s:"In Arbeit",n:""},
+{p:"D",k:"Marketing",a:"Kunst für Wand besorgen",d:"",z:"Fede",s:"In Arbeit",n:""},
+{p:"D",k:"Marketing",a:"Lokale Kooperationen erweitern",d:"",z:"Raffi",s:"Offen",n:""},
+{p:"D",k:"Marketing",a:"Fotos/Videos vom neuen Studio posten",d:"",z:"Benny/Bea",s:"Offen",n:""},
+{p:"D",k:"Marketing",a:"Pakistani Insta Manager einweisen SOP",d:"",z:"Benny",s:"Offen",n:""},
+{p:"D",k:"Operations",a:"Rollenverteilung Fede/Beatrice in Notion",d:"",z:"Benny",s:"Offen",n:""},
+{p:"D",k:"Operations",a:"Notion weiter aufräumen",d:"",z:"Benny",s:"Offen",n:""},
+{p:"D",k:"HR",a:"Online-Arbeitszeitlisten für Raffi/Fede/Beatrice",d:"",z:"Benny",s:"In Arbeit",n:""},
+{p:"E",k:"HR",a:"Künstler Sozialkasse anfragen Fragebogen",d:"",z:"Raffi",s:"Offen",n:""},
+{p:"E",k:"Operations",a:"Foto Dilan für TK ändern",d:"",z:"Benny",s:"In Arbeit",n:""},
+];
+
+async function importDefaultTodos() {
+  if (!confirm('Standard-Daten importieren? (' + DEFAULT_TODOS.length + ' Aufgaben)')) return;
+  toast('Importiere ' + DEFAULT_TODOS.length + ' Aufgaben...', 'info');
+  const batch = db.batch();
+  DEFAULT_TODOS.forEach(t => {
+    const ref = db.collection('todos').doc();
+    batch.set(ref, {
+      priority: t.p, kategorie: t.k, aufgabe: t.a, deadline: t.d,
+      zustaendig: t.z, status: t.s, notizen: t.n,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  });
+  await batch.commit();
+  toast(DEFAULT_TODOS.length + ' Aufgaben importiert!', 'success');
+}
+
+// --- Init ---
+initListeners();
+
+
+async function loadFinanceData() {
+  if (state.financeData && !state.financeData._stale) return;
+  state.financeLoading = true;
+  render();
+  try {
+    const [calRev, artRev, actRev, bankSum, finOv] = await Promise.all([
+      db.collection('calendarRevenue').get(),
+      db.collection('artistRevenue').get(),
+      db.collection('actualRevenue').get(),
+      db.collection('bankSummary').get(),
+      db.collection('financialOverview').get()
+    ]);
+    const toArr = snap => snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    state.financeData = {
+      calendarRevenue: toArr(calRev),
+      artistRevenue: toArr(artRev),
+      actualRevenue: toArr(actRev),
+      bankSummary: toArr(bankSum),
+      financialOverview: toArr(finOv),
+      _ts: Date.now()
+    };
+  } catch (e) {
+    console.error('Finance load error:', e);
+    state.financeData = { calendarRevenue: [], artistRevenue: [], actualRevenue: [], bankSummary: [], financialOverview: [], _error: e.message };
+  }
+  state.financeLoading = false;
+  render();
+}
+// ============================================================
+// SECTION 6: RENDER + HELPERS
+// Paste all of these into the <script> block.
+// ============================================================
+
+// -- Helpers --
+
+const MONTH_NAMES_DE = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+const MONTH_SHORT_DE = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+
+function eurFmt(n) {
+  if (n == null || isNaN(n)) return '—';
+  return Number(n).toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
+}
+
+function numFmt(n) {
+  if (n == null || isNaN(n)) return '—';
+  return Number(n).toLocaleString('de-DE');
+}
+
+function toggleFinDetail(key) {
+  state.financeDetail = state.financeDetail === key ? null : key;
+  render();
+}
+
+function setFinMonth(dir) {
+  state.financeMonth = Math.max(0, Math.min(11, state.financeMonth + dir));
+  state.financeDetail = null;
+  render();
+}
+
+function finGetOverview(m) {
+  if (!state.financeData) return null;
+  return state.financeData.financialOverview.find(r => r.month === m && r.year === new Date().getFullYear()) || null;
+}
+
+function finGetBank(m) {
+  if (!state.financeData) return null;
+  return state.financeData.bankSummary.find(r => r.month === m && r.year === new Date().getFullYear()) || null;
+}
+
+function finGetActual(m, loc) {
+  if (!state.financeData) return null;
+  return state.financeData.actualRevenue.find(r => r.month === m && r.year === new Date().getFullYear() && (!loc || r.location === loc)) || null;
+}
+
+function finGetCalendar(m, loc) {
+  if (!state.financeData) return [];
+  return state.financeData.calendarRevenue.filter(r => r.month === m && (!loc || r.location === loc));
+}
+
+function finGetArtists(m) {
+  if (!state.financeData) return [];
+  return state.financeData.artistRevenue.filter(r => r.month === m).sort((a, b) => (b.totalRevenue || 0) - (a.totalRevenue || 0));
+}
+
+// -- Badge for liquidity --
+function liquidityBadge(status) {
+  if (!status) return '<span class="fin-badge fin-badge-yellow">Keine Daten</span>';
+  const s = status.toLowerCase();
+  if (s.includes('gut') || s.includes('positiv') || s.includes('good')) return `<span class="fin-badge fin-badge-green">${status}</span>`;
+  if (s.includes('kritisch') || s.includes('negativ') || s.includes('bad')) return `<span class="fin-badge fin-badge-red">${status}</span>`;
+  return `<span class="fin-badge fin-badge-yellow">${status}</span>`;
+}
+
+// -- Expense color palette --
+function expenseColor(i) {
+  const colors = ['#60a5fa','#f472b6','#a78bfa','#fb923c','#34d399','#fbbf24','#e879f9','#38bdf8','#f87171','#4ade80'];
+  return colors[i % colors.length];
+}
+// ============================================================
+// MAIN RENDER FUNCTION
+// ============================================================
+
+function renderFinanceView() {
+  if (state.financeLoading) {
+    return `<div class="fin-loading"><span class="fin-spinner"></span> Finanzdaten werden geladen\u2026</div>`;
+  }
+  if (!state.financeData) {
+    // Trigger load on first render
+    setTimeout(() => loadFinanceData(), 0);
+    return `<div class="fin-loading"><span class="fin-spinner"></span> Finanzdaten werden geladen\u2026</div>`;
+  }
+  if (state.financeData._error) {
+    return `<div class="fin-loading" style="color:var(--red);">\u26a0 Fehler beim Laden: ${state.financeData._error}</div>`;
+  }
+
+  const m = state.financeMonth;
+  const ov = finGetOverview(m);
+  const bank = finGetBank(m);
+  const artists = finGetArtists(m);
+
+  return `
+    ${renderFinMonthNav(m)}
+    ${renderFinQuickCards(m, ov, bank)}
+    ${renderFinCompare(m, ov)}
+    ${renderFinMonthChart(m)}
+    ${renderFinArtists(m, artists)}
+    ${renderFinExpenses(m, bank)}
+    ${renderFinUpcoming(m)}
+  `;
+}
+// -- Month Navigation --
+function renderFinMonthNav(m) {
+  return `
+  <div class="fin-month-nav">
+    <button class="fin-month-btn" onclick="setFinMonth(-1)" ${m===0?'disabled':''}>&#9664;</button>
+    <span class="fin-month-current">${MONTH_NAMES_DE[m]} ${new Date().getFullYear()}</span>
+    <button class="fin-month-btn" onclick="setFinMonth(1)" ${m===11?'disabled':''}>&#9654;</button>
+  </div>`;
+}
+// -- Quick Finance Cards --
+function renderFinQuickCards(m, ov, bank) {
+  const expected = ov ? (ov.expectedRevenue_total || 0) : 0;
+  const actual = ov ? (ov.actualRevenue_total || 0) : 0;
+  const income = bank ? (bank.totalIncome || 0) : 0;
+  const expenses = bank ? (bank.totalExpenses || 0) : 0;
+  const liq = ov ? ov.liquidityStatus : null;
+  const det = state.financeDetail;
+
+  // Detail panels
+  const expectedDetail = det === 'expected' ? renderExpectedDetail(m) : '';
+  const actualDetail = det === 'actual' ? renderActualDetail(m) : '';
+  const bankDetail = det === 'bank' ? renderBankDetail(bank) : '';
+
+  return `
+  <div class="fin-grid">
+    <div>
+      <div class="fin-card" onclick="toggleFinDetail('expected')">
+        <div class="fin-card-label">\ud83d\udcc5 Erwarteter Umsatz</div>
+        <div class="fin-card-value">${eurFmt(expected)}</div>
+        <div class="fin-card-sub">aus Kalender-Terminen</div>
+      </div>
+      <div class="fin-detail ${det==='expected'?'open':''}">${expectedDetail}</div>
+    </div>
+    <div>
+      <div class="fin-card" onclick="toggleFinDetail('actual')">
+        <div class="fin-card-label">\ud83d\udcb0 Tatsächlicher Umsatz</div>
+        <div class="fin-card-value" style="color:var(--green)">${eurFmt(actual)}</div>
+        <div class="fin-card-sub">aus Tagesabrechnungen</div>
+      </div>
+      <div class="fin-detail ${det==='actual'?'open':''}">${actualDetail}</div>
+    </div>
+    <div>
+      <div class="fin-card" onclick="toggleFinDetail('bank')">
+        <div class="fin-card-label">\ud83c\udfe6 Bank</div>
+        <div class="fin-card-value">${eurFmt(income)}</div>
+        <div class="fin-card-sub">Ausgaben: <span style="color:var(--red)">${eurFmt(Math.abs(expenses))}</span></div>
+      </div>
+      <div class="fin-detail ${det==='bank'?'open':''}">${bankDetail}</div>
+    </div>
+    <div>
+      <div class="fin-card" style="cursor:default">
+        <div class="fin-card-label">\ud83d\udca7 Liquidität</div>
+        <div style="margin-top:.4rem">${liquidityBadge(liq)}</div>
+        <div class="fin-card-sub">Netto: ${bank ? eurFmt(bank.netCashflow) : '—'}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// Detail: Expected Revenue breakdown by location
+function renderExpectedDetail(m) {
+  const achern = finGetCalendar(m, 'achern');
+  const weil = finGetCalendar(m, 'weil');
+  const row = (loc, data) => {
+    if (!data.length) return `<tr><td>${loc}</td><td>—</td></tr>`;
+    const d = data[0];
+    return `<tr><td>${loc}</td><td>${eurFmt(d.totalRevenue)}</td></tr>
+            <tr><td style="padding-left:1rem;color:#475569">Anzahlungen</td><td>${eurFmt(d.totalDeposit)}</td></tr>
+            <tr><td style="padding-left:1rem;color:#475569">Termine</td><td>${numFmt(d.totalAppointments)}</td></tr>
+            <tr><td style="padding-left:1rem;color:#475569">Rest offen</td><td>${eurFmt(d.totalRemaining)}</td></tr>`;
+  };
+  return `<table><thead><tr><th>Standort</th><th style="text-align:right">Betrag</th></tr></thead>
+    <tbody>${row('Achern', achern)}${row('Weil am Rhein', weil)}</tbody></table>`;
+}
+
+// Detail: Actual Revenue breakdown
+function renderActualDetail(m) {
+  const recs = state.financeData.actualRevenue.filter(r => r.month === m && r.year === new Date().getFullYear());
+  if (!recs.length) return '<div class="fin-empty">Keine Daten für diesen Monat</div>';
+  return recs.map(r => `
+    <div style="margin-bottom:.5rem">
+      <div style="font-size:.75rem;font-weight:600;color:var(--accent);margin-bottom:.3rem">${r.location === 'achern' ? 'Achern' : 'Weil am Rhein'}</div>
+      <table>
+        <tr><td>Bar</td><td>${eurFmt(r.totalBar)}</td></tr>
+        <tr><td>Karte</td><td>${eurFmt(r.totalKarte)}</td></tr>
+        <tr><td>PayPal</td><td>${eurFmt(r.totalPayPal)}</td></tr>
+        <tr><td>Beautinda</td><td>${eurFmt(r.totalBeautinda)}</td></tr>
+        <tr><td>Gutscheine</td><td>${eurFmt(r.totalGutschein)}</td></tr>
+        <tr><td>Tagesumsatz</td><td>${eurFmt(r.totalTagesumsatz)}</td></tr>
+        <tr><td>Anzahlungen</td><td>${eurFmt(r.totalAnzahlungen)}</td></tr>
+        <tr><td>Restzahlungen</td><td>${eurFmt(r.totalRestzahlungen)}</td></tr>
+        <tr><td style="color:var(--red)">Vorschüsse</td><td style="color:var(--red)">${eurFmt(r.totalVorschuesse)}</td></tr>
+        <tr><td style="color:var(--red)">Ausgaben</td><td style="color:var(--red)">${eurFmt(r.totalAusgaben)}</td></tr>
+        <tr><td style="color:#64748b">Tage mit Daten</td><td>${r.daysWithData || '—'}</td></tr>
+      </table>
+    </div>
+  `).join('');
+}
+
+// Detail: Bank categories
+function renderBankDetail(bank) {
+  if (!bank || !bank.categories) return '<div class="fin-empty">Keine Bankdaten</div>';
+  const cats = bank.categories;
+  const entries = Object.entries(cats).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
+  if (!entries.length) return '<div class="fin-empty">Keine Kategorien</div>';
+  return `<table><thead><tr><th>Kategorie</th><th style="text-align:right">Betrag</th></tr></thead><tbody>
+    ${entries.map(([k, v]) => `<tr><td>${k}</td><td style="color:${v < 0 ? 'var(--red)' : 'var(--green)'}">${eurFmt(v)}</td></tr>`).join('')}
+    </tbody></table>
+    <div style="font-size:.68rem;color:#475569;margin-top:.3rem">${bank.transactionCount || 0} Transaktionen</div>`;
+}
+// -- Standort-Vergleich --
+function renderFinCompare(m, ov) {
+  const calA = finGetCalendar(m, 'achern')[0];
+  const calW = finGetCalendar(m, 'weil')[0];
+  const locCard = (name, cal, expRev, actRev) => {
+    return `
+    <div class="fin-loc-card">
+      <div class="fin-loc-name">${name}</div>
+      <div class="fin-loc-row"><span>Erwartet</span><span>${eurFmt(expRev)}</span></div>
+      <div class="fin-loc-row"><span>Tatsächlich</span><span style="color:var(--green)">${eurFmt(actRev)}</span></div>
+      <div class="fin-loc-row"><span>Termine</span><span>${cal ? numFmt(cal.totalAppointments) : '—'}</span></div>
+      <div class="fin-loc-row"><span>Anzahlungen</span><span>${cal ? eurFmt(cal.totalDeposit) : '—'}</span></div>
+      <div class="fin-loc-row"><span>Events m/ Umsatz</span><span>${cal ? numFmt(cal.eventsWithRevenue) : '—'}</span></div>
+    </div>`;
+  };
+  return `
+  <div class="fin-section">
+    <div class="fin-section-title">\ud83d\udccd Standort-Vergleich</div>
+    <div class="fin-compare">
+      ${locCard('Achern', calA, ov?.expectedRevenue_achern, ov?.actualRevenue_achern)}
+      ${locCard('Weil am Rhein', calW, ov?.expectedRevenue_weil, ov?.actualRevenue_weil)}
+    </div>
+  </div>`;
+}
+// -- Month Chart (6 months) --
+function renderFinMonthChart(m) {
+  const year = new Date().getFullYear();
+  const now = new Date().getMonth();
+  // Show 3 before + current + 2 after (clamped to 0-11)
+  const start = Math.max(0, m - 3);
+  const end = Math.min(11, m + 2);
+  const months = [];
+  for (let i = start; i <= end; i++) months.push(i);
+
+  // Gather values
+  const vals = months.map(mi => {
+    const ov = state.financeData.financialOverview.find(r => r.month === mi && r.year === year);
+    const actual = ov ? (ov.actualRevenue_total || 0) : 0;
+    const expected = ov ? (ov.expectedRevenue_total || 0) : 0;
+    return { month: mi, actual, expected, value: mi <= now ? actual : expected };
+  });
+  const maxVal = Math.max(...vals.map(v => v.value), 1);
+
+  const bars = vals.map(v => {
+    const pct = Math.round((v.value / maxVal) * 100);
+    let color = 'rgba(100,116,139,.35)'; // future = gray
+    if (v.month < now) color = 'var(--green)';
+    if (v.month === now) color = 'var(--accent)';
+    const isCurrent = v.month === m;
+    return `
+    <div class="fin-bar-col">
+      <div class="fin-bar-amount">${v.value > 0 ? eurFmt(v.value) : ''}</div>
+      <div class="fin-bar" style="height:${Math.max(pct, 3)}%;background:${color};${isCurrent ? 'box-shadow:0 0 8px rgba(96,165,250,.4);' : ''}"></div>
+      <div class="fin-bar-label" style="${isCurrent ? 'color:#e2e8f0;font-weight:600' : ''}">${MONTH_SHORT_DE[v.month]}</div>
+    </div>`;
+  }).join('');
+
+  return `
+  <div class="fin-section">
+    <div class="fin-section-title">\ud83d\udcc8 Monatsverlauf</div>
+    <div style="display:flex;gap:.75rem;font-size:.6rem;color:#64748b;margin-bottom:.35rem">
+      <span>\u25cf <span style="color:var(--green)">Tatsächlich</span></span>
+      <span>\u25cf <span style="color:var(--accent)">Aktuell</span></span>
+      <span>\u25cf <span style="color:rgba(100,116,139,.6)">Erwartet</span></span>
+    </div>
+    <div class="fin-bars">${bars}</div>
+  </div>`;
+}
+// -- Künstler-Ranking --
+function renderFinArtists(m, artists) {
+  if (!artists.length) {
+    return `<div class="fin-section">
+      <div class="fin-section-title">\ud83c\udfc6 Künstler-Ranking</div>
+      <div class="fin-empty">Keine Künstlerdaten für ${MONTH_NAMES_DE[m]}</div>
+    </div>`;
+  }
+  const det = state.financeDetail;
+  const rows = artists.map((a, i) => {
+    const rank = i + 1;
+    const rc = rank === 1 ? 'fin-rank-1' : rank === 2 ? 'fin-rank-2' : rank === 3 ? 'fin-rank-3' : 'fin-rank-default';
+    const key = 'artist:' + a.artistId;
+    const isOpen = det === key;
+    let detail = '';
+    if (isOpen && a.events && a.events.length) {
+      detail = `<div class="fin-detail open" style="margin:0 0 .3rem 2.3rem;max-height:400px">
+        <table><thead><tr><th>Termin</th><th style="text-align:right">Umsatz</th></tr></thead><tbody>
+        ${a.events.slice(0, 20).map(ev => `<tr><td style="font-size:.72rem">${ev.title || ev.summary || '—'}</td><td>${eurFmt(ev.revenue || ev.price || 0)}</td></tr>`).join('')}
+        </tbody></table>
+      </div>`;
+    } else if (isOpen) {
+      detail = `<div class="fin-detail open" style="margin:0 0 .3rem 2.3rem"><div class="fin-empty">Keine Event-Details</div></div>`;
+    }
+    return `
+    <div class="fin-artist" onclick="toggleFinDetail('${key}')">
+      <div class="fin-artist-rank ${rc}">${rank <= 3 ? ['🥇','🥈','🥉'][rank-1] : rank}</div>
+      <div class="fin-artist-name">${a.artistName || 'Unbekannt'}</div>
+      <div class="fin-artist-rev">${eurFmt(a.totalRevenue)}</div>
+      <div class="fin-artist-count">${a.eventCount || 0} Termine</div>
+    </div>${detail}`;
+  }).join('');
+
+  return `
+  <div class="fin-section">
+    <div class="fin-section-title">\ud83c\udfc6 Künstler-Ranking</div>
+    ${rows}
+  </div>`;
+}
+// -- Ausgaben-Kategorien --
+function renderFinExpenses(m, bank) {
+  if (!bank || !bank.categories) {
+    return `<div class="fin-section">
+      <div class="fin-section-title">\ud83d\udcca Ausgaben-Kategorien</div>
+      <div class="fin-empty">Keine Bankdaten für ${MONTH_NAMES_DE[m]}</div>
+    </div>`;
+  }
+  const cats = bank.categories;
+  const entries = Object.entries(cats)
+    .filter(([, v]) => v < 0)
+    .map(([k, v]) => [k, Math.abs(v)])
+    .sort((a, b) => b[1] - a[1]);
+
+  if (!entries.length) {
+    return `<div class="fin-section">
+      <div class="fin-section-title">\ud83d\udcca Ausgaben-Kategorien</div>
+      <div class="fin-empty">Keine Ausgaben-Kategorien</div>
+    </div>`;
+  }
+  const maxExp = entries[0][1];
+  const bars = entries.map(([cat, val], i) => {
+    const pct = Math.round((val / maxExp) * 100);
+    return `
+    <div class="fin-expense-row">
+      <div class="fin-expense-label"><span>${cat}</span><span>${eurFmt(val)}</span></div>
+      <div class="fin-expense-bar-bg"><div class="fin-expense-bar-fill" style="width:${pct}%;background:${expenseColor(i)}"></div></div>
+    </div>`;
+  }).join('');
+
+  return `
+  <div class="fin-section">
+    <div class="fin-section-title">\ud83d\udcca Ausgaben-Kategorien</div>
+    ${bars}
+  </div>`;
+}
+// -- Was kommt rein? (next 7 days) --
+function renderFinUpcoming(m) {
+  const now = new Date();
+  const calData = state.financeData.calendarRevenue.filter(r => r.month === m);
+  // Collect upcoming events from calendar data
+  let upcoming = [];
+  calData.forEach(r => {
+    if (!r.events) return;
+    let events = r.events;
+    if (typeof events === 'string') {
+      try { events = JSON.parse(events); } catch(e) { return; }
+    }
+    if (!Array.isArray(events)) return;
+    events.forEach(ev => {
+      const d = ev.start || ev.date || ev.startDate;
+      if (!d) return;
+      const evDate = new Date(d);
+      const diffDays = (evDate - now) / (1000 * 60 * 60 * 24);
+      if (diffDays >= 0 && diffDays <= 7) {
+        upcoming.push({ date: evDate, title: ev.title || ev.summary || 'Termin', revenue: ev.revenue || ev.price || 0, location: r.location });
+      }
+    });
+  });
+
+  // Also try parsing eventsJson if events array was empty
+  calData.forEach(r => {
+    if (r.eventsJson && (!r.events || !r.events.length)) {
+      try {
+        const parsed = JSON.parse(r.eventsJson);
+        if (Array.isArray(parsed)) {
+          parsed.forEach(ev => {
+            const d = ev.start || ev.date || ev.startDate;
+            if (!d) return;
+            const evDate = new Date(d);
+            const diffDays = (evDate - now) / (1000 * 60 * 60 * 24);
+            if (diffDays >= 0 && diffDays <= 7) {
+              upcoming.push({ date: evDate, title: ev.title || ev.summary || 'Termin', revenue: ev.revenue || ev.price || 0, location: r.location });
+            }
+          });
+        }
+      } catch(e) { /* skip */ }
+    }
+  });
+
+  // Deduplicate by title+date
+  const seen = new Set();
+  upcoming = upcoming.filter(u => {
+    const key = u.title + u.date.toISOString().slice(0,10);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  upcoming.sort((a, b) => a.date - b.date);
+  const dayFmt = d => d.toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'short' });
+
+  if (!upcoming.length) {
+    return `<div class="fin-section">
+      <div class="fin-section-title">\ud83d\udcc5 Was kommt rein? <span style="font-weight:400;color:#64748b;font-size:.7rem">(nächste 7 Tage)</span></div>
+      <div class="fin-empty">Keine anstehenden Termine mit Umsatz</div>
+    </div>`;
+  }
+
+  const total = upcoming.reduce((s, u) => s + (u.revenue || 0), 0);
+  const rows = upcoming.slice(0, 12).map(u => `
+    <div class="fin-upcoming">
+      <div class="fin-upcoming-date">${dayFmt(u.date)}</div>
+      <div class="fin-upcoming-info">${u.title} <span style="color:#475569;font-size:.65rem">${u.location === 'achern' ? 'AC' : 'WE'}</span></div>
+      <div class="fin-upcoming-amount">${u.revenue > 0 ? eurFmt(u.revenue) : '—'}</div>
+    </div>`).join('');
+
+  return `
+  <div class="fin-section">
+    <div class="fin-section-title">\ud83d\udcc5 Was kommt rein? <span style="font-weight:400;color:#64748b;font-size:.7rem">(nächste 7 Tage · ${eurFmt(total)} erwartet)</span></div>
+    ${rows}
+  </div>`;
+}
+// ============================================================
+// SECTION 7: CSS INJECTION HELPER
+// Call this once at startup or when the finance tab loads.
+// ============================================================
+
+function injectFinanceCSS() {
+  // CSS is already embedded in the <style> block — no dynamic injection needed.
+  return;
+}
+
+</script>
+</body>
+</html>
