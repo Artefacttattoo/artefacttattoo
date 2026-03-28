@@ -77,6 +77,10 @@ body { font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif; ba
 .cell.confirmed { background: var(--green); }
 .cell.tentative { background: var(--yellow); }
 .cell.unavailable { background: var(--red); }
+.cell.available { background: rgba(34,197,94,0.18); border: 1px solid rgba(34,197,94,0.3); }
+.av-btn { font-size: 10px; cursor: pointer; color: var(--text-ghost); padding: 0 4px; flex-shrink: 0; transition: color 0.15s; }
+.av-btn:hover { color: var(--green); }
+.av-btn.av-set { color: var(--green); }
 .hint { margin-top: 8px; color: var(--text-ghost); font-size: 9px; }
 .pipeline-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px; }
 .pipeline-title { font-size: 18px; font-weight: 700; }
@@ -197,58 +201,58 @@ input[type=range] { width: 100%; accent-color: var(--blue); }
 .ws-empty { grid-column: 1/-1; padding: 40px 20px; text-align: center; color: var(--text-ghost); font-size: 13px; line-height: 1.8; }
 
 /* ===== MODULE 3: TODO ===== */
-.todo-dashboard { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
-.todo-stat { background: var(--bg-row-even); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 18px; flex: 1 1 110px; }
-.todo-stat-label { color: var(--text-ghost); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-.todo-stat-val { font-size: 22px; font-weight: 700; margin-top: 2px; }
-.todo-progress { height: 6px; background: var(--bg-input); border-radius: 3px; margin-top: 6px; overflow: hidden; }
-.todo-progress-bar { height: 100%; background: var(--green); border-radius: 3px; transition: width 0.3s; }
+.todo-dashboard { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+.todo-stat { background: var(--bg-row-even); border: 1px solid var(--border); border-radius: 12px; padding: 16px 22px; flex: 1 1 120px; }
+.todo-stat-label { color: var(--text-ghost); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+.todo-stat-val { font-size: 28px; font-weight: 700; margin-top: 4px; }
+.todo-progress { height: 8px; background: var(--bg-input); border-radius: 4px; margin-top: 8px; overflow: hidden; }
+.todo-progress-bar { height: 100%; background: linear-gradient(90deg, var(--green), #4ade80); border-radius: 4px; transition: width 0.3s; }
 .todo-filters { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
-.todo-filters select, .todo-filters input[type=text] { background: var(--bg-input); border: 1px solid var(--text-ghost); border-radius: 6px; padding: 7px 12px; color: var(--text); font-size: 13px; font-family: inherit; outline: none; }
-.todo-filters select:focus, .todo-filters input:focus { border-color: var(--accent); }
-.todo-filters input[type=text] { min-width: 160px; }
-.todo-count { font-size: 12px; color: var(--text-faint); margin-left: auto; }
+.todo-filters select, .todo-filters input[type=text] { background: var(--bg-input); border: 1px solid var(--text-ghost); border-radius: 8px; padding: 10px 14px; color: var(--text); font-size: 14px; font-family: inherit; outline: none; }
+.todo-filters select:focus, .todo-filters input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(96,165,250,0.15); }
+.todo-filters input[type=text] { min-width: 180px; }
+.todo-count { font-size: 13px; color: var(--text-faint); margin-left: auto; font-weight: 500; }
 .todo-check { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-faint); cursor: pointer; }
 .todo-check input { accent-color: var(--accent); cursor: pointer; width: 15px; height: 15px; }
 .todo-table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); }
-.todo-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 800px; }
-.todo-table th { background: var(--bg-root); padding: 12px 14px; text-align: left; font-weight: 600; font-size: 12px; color: var(--text-faint); border-bottom: 2px solid var(--border); cursor: pointer; user-select: none; white-space: nowrap; }
+.todo-table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 800px; }
+.todo-table th { background: var(--bg-root); padding: 14px 16px; text-align: left; font-weight: 700; font-size: 12px; color: var(--text-muted); border-bottom: 2px solid var(--border); cursor: pointer; user-select: none; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.04em; }
 .todo-table th:hover { color: var(--accent); }
 .todo-table th .sort-arrow { margin-left: 3px; font-size: 9px; }
-.todo-table td { padding: 12px 14px; border-bottom: 1px solid var(--border-light); vertical-align: middle; line-height: 1.5; }
+.todo-table td { padding: 16px 16px; border-bottom: 1px solid var(--border-light); vertical-align: middle; line-height: 1.6; }
 .todo-table tr:nth-child(even) td { background: var(--bg-row-even); }
 .todo-table tr:nth-child(odd) td { background: var(--bg-row-odd); }
 .todo-table tr:hover td { background: var(--bg-hover) !important; }
 .todo-table tr.todo-done td { opacity: 0.35; text-decoration: line-through; }
-.todo-prio { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; display: inline-block; min-width: 28px; text-align: center; }
+.todo-prio { padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 800; display: inline-block; min-width: 32px; text-align: center; letter-spacing: 0.02em; }
 .todo-prio-A { background: rgba(239,68,68,0.25); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
 .todo-prio-B { background: rgba(249,115,22,0.25); color: #fdba74; border: 1px solid rgba(249,115,22,0.3); }
 .todo-prio-C { background: rgba(234,179,8,0.25); color: #fde68a; border: 1px solid rgba(234,179,8,0.3); }
 .todo-prio-D { background: rgba(59,130,246,0.25); color: #93c5fd; border: 1px solid rgba(59,130,246,0.3); }
 .todo-prio-E { background: rgba(100,116,139,0.25); color: #94a3b8; border: 1px solid rgba(100,116,139,0.3); }
 .todo-prio-P { background: rgba(167,139,250,0.25); color: #c4b5fd; border: 1px solid rgba(167,139,250,0.3); }
-.todo-status { padding: 5px 14px; border-radius: 12px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; font-family: inherit; transition: all 0.15s; }
+.todo-status { padding: 8px 18px; border-radius: 20px; font-size: 13px; font-weight: 700; cursor: pointer; border: none; font-family: inherit; transition: all 0.15s; letter-spacing: 0.01em; }
 .todo-status:hover { filter: brightness(1.2); transform: scale(1.05); }
 .todo-status-offen { background: rgba(239,68,68,0.2); color: #fca5a5; }
 .todo-status-arbeit { background: rgba(234,179,8,0.2); color: #fde68a; }
 .todo-status-erledigt { background: rgba(34,197,94,0.2); color: #86efac; }
 .todo-cell-edit { background: var(--bg-input); border: 1px solid var(--accent); border-radius: 4px; padding: 6px 10px; color: var(--text); font-size: 13px; font-family: inherit; outline: none; width: 100%; }
 .todo-actions { display: flex; gap: 6px; }
-.todo-action-btn { background: none; border: none; cursor: pointer; font-size: 16px; padding: 4px 6px; border-radius: 6px; transition: background 0.1s; }
-.todo-action-btn:hover { background: var(--bg-input); }
+.todo-action-btn { background: none; border: none; cursor: pointer; font-size: 18px; padding: 6px 8px; border-radius: 8px; transition: all 0.15s; opacity: 0.5; }
+.todo-action-btn:hover { background: var(--bg-input); opacity: 1; }
 .todo-empty { text-align: center; padding: 40px 20px; color: var(--text-ghost); }
 .todo-import-btn { background: rgba(96,165,250,0.12); border: 1px dashed rgba(96,165,250,0.4); color: var(--accent); border-radius: 8px; padding: 12px 24px; cursor: pointer; font-size: 13px; font-weight: 600; font-family: inherit; margin-top: 12px; transition: all 0.15s; }
 .todo-import-btn:hover { background: rgba(96,165,250,0.2); }
 .todo-notizen-cell { max-width: 220px; cursor: pointer; position: relative; }
 .todo-notizen-text { color: var(--text-muted); font-size: 12px; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.todo-notizen-text.expanded { white-space: normal; word-break: break-word; }
+.todo-notizen-text.expanded { white-space: normal; word-break: break-word; background: var(--bg-input); padding: 8px 10px; border-radius: 6px; margin: -4px -6px; }
 .todo-deadline-overdue { color: #ef4444 !important; font-weight: 600; }
 .todo-deadline-soon { color: #eab308 !important; font-weight: 600; }
 .todo-deadline-ok { color: var(--text-dim); }
-.todo-aufgabe-cell { font-weight: 500; color: var(--text); cursor: pointer; max-width: 350px; }
+.todo-aufgabe-cell { font-weight: 600; color: var(--text); cursor: pointer; max-width: 400px; font-size: 14px; }
 .todo-aufgabe-cell:hover { color: var(--accent); }
-.todo-kategorie-badge { background: rgba(96,165,250,0.1); color: var(--accent); padding: 3px 8px; border-radius: 5px; font-size: 11px; font-weight: 500; display: inline-block; }
-.todo-person-badge { color: var(--accent-purple); font-weight: 500; font-size: 12px; }
+.todo-kategorie-badge { background: rgba(96,165,250,0.12); color: var(--accent); padding: 5px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; display: inline-block; letter-spacing: 0.02em; }
+.todo-person-badge { color: var(--accent-purple); font-weight: 600; font-size: 13px; }
 
 /* ===== REVENUE SECTION ===== */
 .revenue-section { margin-bottom: 12px; }
@@ -420,6 +424,7 @@ let state = {
   todoSort: { field: 'priority', dir: 'asc' },
   todoHideCompleted: false,
   calendarRevenue: {},
+  artistAvailability: {},
   financeData: null,
   financeDetail: null,
   financeMonth: new Date().getMonth(),
@@ -465,6 +470,12 @@ function initListeners() {
     state.todos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     if (state.loaded) render();
   });
+  db.collection('artistAvailability').onSnapshot(snap => {
+    const av = {};
+    snap.docs.forEach(d => { const data = d.data(); const key = `${data.artistId}_${data.location}_${data.month}_${data.year || 2026}`; av[key] = { ...data, docId: d.id }; });
+    state.artistAvailability = av;
+    if (state.loaded) render();
+  });
   db.collection('calendarRevenue').onSnapshot(snap => {
     const rv = {};
     snap.docs.forEach(d => {
@@ -487,6 +498,7 @@ function initListeners() {
     db.collection('locationConfig').get(),
     db.collection('todos').get(),
     db.collection('calendarRevenue').get(),
+    db.collection('artistAvailability').get(),
   ]).then(() => { state.loaded = true; render(); }).catch(() => { state.loaded = true; render(); });
 }
 
@@ -526,6 +538,85 @@ async function convertCandidate(candidate) {
   batch.delete(db.collection('pipeline').doc(candidate.id));
   await batch.commit();
   toast(`${candidate.name} -> Aktiver Künstler!`, 'success');
+}
+
+// --- Artist Availability ---
+function getArtistAvailability(artistId, location, month) {
+  const key = `${artistId}_${location}_${month}_2026`;
+  return state.artistAvailability[key] || null;
+}
+function isArtistAvailable(artistId, location, month, day) {
+  const av = getArtistAvailability(artistId, location, month);
+  if (!av || !av.ranges || av.ranges.length === 0) return false;
+  return av.ranges.some(r => day >= r.from && day <= r.to);
+}
+async function saveArtistAvailability(artistId, location, month, ranges) {
+  const key = `${artistId}_${location}_${month}_2026`;
+  const existing = state.artistAvailability[key];
+  if (ranges.length === 0 && existing?.docId) {
+    await db.collection('artistAvailability').doc(existing.docId).delete();
+  } else {
+    await db.collection('artistAvailability').doc(key).set({ artistId, location, month, year: 2026, ranges });
+  }
+  toast('Verfügbarkeit gespeichert', 'success');
+}
+function showAvailabilityModal(artist, location) {
+  const m = state.month; const days = DAYS[m];
+  const av = getArtistAvailability(artist.id, location, m);
+  const existingRanges = av?.ranges || [];
+  let rangesHTML = '';
+  const renderRanges = (ranges) => {
+    if (ranges.length === 0) return `<div style="color:var(--text-ghost);font-size:13px;padding:12px 0">Keine Zeiträume eingetragen</div>`;
+    return ranges.map((r, i) => `<div class="av-range-row" style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+      <span style="color:var(--text-faint);font-size:12px;width:20px">${i + 1}.</span>
+      <label style="font-size:12px;color:var(--text-dim)">Von:</label><input type="number" class="av-from" min="1" max="${days}" value="${r.from}" style="width:60px;background:var(--bg-input);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-size:13px;text-align:center">
+      <label style="font-size:12px;color:var(--text-dim)">Bis:</label><input type="number" class="av-to" min="1" max="${days}" value="${r.to}" style="width:60px;background:var(--bg-input);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-size:13px;text-align:center">
+      <button class="av-remove-btn" style="background:rgba(239,68,68,0.15);border:none;color:#fca5a5;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:12px">x</button>
+    </div>`).join('');
+  };
+  const defaultRanges = existingRanges.length > 0 ? existingRanges : [{ from: 1, to: days }];
+  const html = `
+    <div class="modal-header"><div class="modal-title">Verfügbarkeit: ${esc(artist.name)}</div><button class="modal-close" onclick="closeModal(this.closest('.overlay'))">x</button></div>
+    <div class="modal-body">
+      <div style="margin-bottom:12px;font-size:13px;color:var(--text-dim)"><strong>${MONTHS[m]} 2026</strong> · ${location === 'achern' ? 'Achern' : 'Weil am Rhein'} · ${days} Tage</div>
+      <div style="margin-bottom:8px;font-size:12px;color:var(--text-faint)">Trage ein, wann ${esc(artist.name)} im Studio ist. Tage ohne Kalender-Termin werden <span style="color:var(--green);font-weight:600">grün</span> angezeigt.</div>
+      <div id="av-ranges">${renderRanges(defaultRanges)}</div>
+      <button onclick="window._avAddRange()" style="background:rgba(34,197,94,0.12);border:1px dashed rgba(34,197,94,0.4);color:var(--green);border-radius:6px;padding:8px 16px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;margin-top:4px">+ Zeitraum hinzufügen</button>
+      <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border)">
+        <button onclick="window._avClear()" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;border-radius:6px;padding:6px 14px;cursor:pointer;font-size:12px;font-family:inherit">Alle löschen (nicht da)</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal(this.closest('.overlay'))">Abbrechen</button>
+      <button class="btn btn-primary" onclick="window._avSave()">Speichern</button>
+    </div>
+  `;
+  const overlay = showModal(html, '480px');
+  overlay.addEventListener('click', (e) => { if (e.target.classList.contains('av-remove-btn')) e.target.closest('.av-range-row, div')?.remove(); });
+  window._avAddRange = () => {
+    const container = document.getElementById('av-ranges');
+    if (!container) return;
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex;gap:8px;align-items:center;margin-bottom:8px';
+    div.innerHTML = `<span style="color:var(--text-faint);font-size:12px;width:20px">+</span><label style="font-size:12px;color:var(--text-dim)">Von:</label><input type="number" class="av-from" min="1" max="${days}" value="1" style="width:60px;background:var(--bg-input);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-size:13px;text-align:center"><label style="font-size:12px;color:var(--text-dim)">Bis:</label><input type="number" class="av-to" min="1" max="${days}" value="${days}" style="width:60px;background:var(--bg-input);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-size:13px;text-align:center"><button style="background:rgba(239,68,68,0.15);border:none;color:#fca5a5;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:12px">x</button>`;
+    div.querySelector('button').onclick = () => div.remove();
+    container.appendChild(div);
+  };
+  window._avSave = () => {
+    const froms = overlay.querySelectorAll('.av-from');
+    const tos = overlay.querySelectorAll('.av-to');
+    const ranges = [];
+    froms.forEach((f, i) => {
+      const from = parseInt(f.value); const to = parseInt(tos[i]?.value);
+      if (from && to && from <= to && from >= 1 && to <= days) ranges.push({ from, to });
+    });
+    saveArtistAvailability(artist.id, location, m, ranges);
+    closeModal(overlay);
+  };
+  window._avClear = () => {
+    saveArtistAvailability(artist.id, location, m, []);
+    closeModal(overlay);
+  };
 }
 
 // --- Firebase Operations Module 2 ---
@@ -928,18 +1019,20 @@ function renderBookingView(artists, location) {
   artists.forEach((artist, aIdx) => {
     const bgName = aIdx % 2 === 0 ? 'var(--bg-row-even)' : 'var(--bg-row-odd)';
     const dotColor = ARTIST_ST[artist.status]?.raw || '#64748b';
-    rows += `<div class="artist-name" style="background:${bgName}" onclick="showArtistDetail(state.artists.find(a=>a.id==='${artist.id}'))"><span class="artist-dot" style="background:${dotColor}"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(artist.name)}</span></div>`;
+    const hasAv = !!getArtistAvailability(artist.id, location, m);
+    rows += `<div class="artist-name" style="background:${bgName}" onclick="showArtistDetail(state.artists.find(a=>a.id==='${artist.id}'))"><span class="artist-dot" style="background:${dotColor}"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${esc(artist.name)}</span><span class="av-btn ${hasAv ? 'av-set' : ''}" onclick="event.stopPropagation();showAvailabilityModal(state.artists.find(a=>a.id==='${artist.id}'),'${location}')" title="Verfügbarkeit setzen">${hasAv ? '&#9679;' : '&#9675;'}</span></div>`;
     for (let d = 1; d <= days; d++) {
       const date = new Date(2026, m, d); const we = date.getDay() === 0 || date.getDay() === 6;
       const bk = getBk(location, artist.id, m, d); const blocked = isElsewhere(location, artist.id, m, d);
       let cls = 'cell'; let bg = aIdx % 2 === 0 ? 'var(--bg-row-even)' : 'var(--bg-row-odd)';
       if (we && !bk && !blocked) bg = aIdx % 2 === 0 ? '#0e1328' : '#12162a';
       if (bk) cls += ` ${STATUS[bk.status]?.cls || ''}`; else if (blocked) cls += ' blocked';
+      else if (!we && isArtistAvailable(artist.id, location, m, d)) cls += ' available';
       let onclick = '';
       if (blocked && !bk) onclick = `onclick="toast('${esc(artist.name)} ist am anderen Standort gebucht','error')"`;
       else if (artist.status !== 'active') onclick = `onclick="toast('${esc(artist.name)} ist noch nicht aktiv','warning')"`;
       else onclick = `onclick="showBookingModal(state.artists.find(a=>a.id==='${artist.id}'),${m},${d},'${location}')"`;
-      const style = (!bk && !blocked) ? `style="background:${bg}"` : '';
+      const style = (!bk && !blocked && !cls.includes('available')) ? `style="background:${bg}"` : '';
       rows += `<div class="${cls}" ${style} ${onclick}></div>`;
     }
   });
