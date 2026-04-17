@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Artist Booking Manager</title>
+<title>Artefact Cockpit</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -53,6 +53,7 @@ body { font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif; ba
 .tab { background: transparent; color: var(--text-faint); border: 1px solid transparent; border-bottom: 1px solid var(--border); border-radius: 8px 8px 0 0; padding: 8px 18px; cursor: pointer; font-size: 13px; font-weight: 600; margin-bottom: -1px; font-family: inherit; transition: all 0.15s; white-space: nowrap; }
 .tab.active { background: var(--bg-card); color: var(--accent); border: 1px solid var(--border); border-bottom-color: var(--bg-card); }
 .tab-fill { flex: 1; border-bottom: 1px solid var(--border); }
+.tab-sep { width: 1px; background: var(--border); margin: 6px 8px; align-self: stretch; border-bottom: 1px solid var(--border); }
 .content { background: var(--bg-card); border: 1px solid var(--border); border-top: none; margin: 0 20px; border-radius: 0 0 10px 10px; padding: 14px 16px 16px; flex: 1; overflow: auto; min-height: 0; }
 .month-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
 .months { display: flex; gap: 3px; flex-wrap: wrap; }
@@ -429,6 +430,9 @@ let state = {
   financeDetail: null,
   financeMonth: new Date().getMonth(),
   financeLoading: false,
+  contractNotes: {},
+  contractFilter: { category: 'all', status: 'all', frequency: 'all', search: '' },
+  contractHideHidden: true,
 };
 
 // --- Firebase Listeners ---
@@ -489,6 +493,13 @@ function initListeners() {
     if (state.loaded) render();
   });
 
+  db.collection('contractNotes').onSnapshot(snap => {
+    const notes = {};
+    snap.docs.forEach(d => { notes[d.id] = d.data(); });
+    state.contractNotes = notes;
+    if (state.loaded) render();
+  }, err => { console.warn('contractNotes listener error', err); });
+
   setTimeout(() => { state.loaded = true; render(); }, 1500);
   Promise.all([
     db.collection('artists').get(),
@@ -499,6 +510,7 @@ function initListeners() {
     db.collection('todos').get(),
     db.collection('calendarRevenue').get(),
     db.collection('artistAvailability').get(),
+    db.collection('contractNotes').get().catch(() => null),
   ]).then(() => { state.loaded = true; render(); }).catch(() => { state.loaded = true; render(); });
 }
 
@@ -838,8 +850,8 @@ function render() {
     <div class="header">
       <div class="header-top">
         <div>
-          <div class="logo">Artist Booking Manager</div>
-          <div class="subtitle">2026 . Echtzeit-Sync <span class="conn-dot ${state.online ? 'online' : 'offline'}" style="margin-left:6px" title="${state.online ? 'Online' : 'Offline'}"></span></div>
+          <div class="logo">Artefact Cockpit</div>
+          <div class="subtitle">Dein Business-Cockpit · 2026 <span class="conn-dot ${state.online ? 'online' : 'offline'}" style="margin-left:6px" title="${state.online ? 'Online' : 'Offline'}"></span></div>
         </div>
       </div>
       <div class="stats">
@@ -850,17 +862,20 @@ function render() {
         ${isBookingTab ? `<div class="stat"><div class="stat-label">${MONTHS[new Date().getMonth()]} Umsatz</div><div class="stat-value" style="color:var(--green)">${monthRevenue > 0 ? (monthRevenue >= 1000 ? (monthRevenue/1000).toFixed(1) + 'k' : monthRevenue + '€') : '-'}</div></div>` : ''}
       </div>
       <div class="tabs">
-        <button class="tab ${state.tab === 'achern' ? 'active' : ''}" onclick="setTab('achern')">[pin] Achern 2026</button>
-        <button class="tab ${state.tab === 'weil' ? 'active' : ''}" onclick="setTab('weil')">[pin] Weil am Rhein 2026</button>
-        <button class="tab ${state.tab === 'pipeline' ? 'active' : ''}" onclick="setTab('pipeline')">[sync] Pipeline (${pipeCount})</button>
-        <button class="tab ${isWorkTab ? 'active' : ''}" onclick="setTab('work')">[cal] Arbeitsplan</button>
-        <button class="tab ${isTodoTab ? 'active' : ''}" onclick="setTab('todo')">[list] TODO (${openTodoCount})</button>
-        <button class="tab ${state.tab==='finance'?'active':''}" onclick="setTab('finance')">[§] Finanzen</button>
+        <button class="tab ${state.tab === 'achern' ? 'active' : ''}" onclick="setTab('achern')" title="Buchung Achern">📅 Achern</button>
+        <button class="tab ${state.tab === 'weil' ? 'active' : ''}" onclick="setTab('weil')" title="Buchung Weil">📅 Weil</button>
+        <button class="tab ${state.tab === 'pipeline' ? 'active' : ''}" onclick="setTab('pipeline')" title="Künstler-Pipeline">⏳ Pipeline (${pipeCount})</button>
+        <button class="tab ${isWorkTab ? 'active' : ''}" onclick="setTab('work')" title="Arbeitsplan / Wer-arbeitet-wann">🗓️ Arbeitsplan</button>
+        <div class="tab-sep"></div>
+        <button class="tab ${state.tab==='finance'?'active':''}" onclick="setTab('finance')" title="Einnahmen aus Kalender + Sheet">💰 Einnahmen</button>
+        <button class="tab ${state.tab==='contracts'?'active':''}" onclick="setTab('contracts')" title="Verträge & laufende Kosten">📋 Verträge</button>
+        <div class="tab-sep"></div>
+        <button class="tab ${isTodoTab ? 'active' : ''}" onclick="setTab('todo')" title="Aufgaben">✅ TODO (${openTodoCount})</button>
         <div class="tab-fill"></div>
       </div>
     </div>
     <div class="content">
-      ${isBookingTab ? renderBookingView(filteredArtists, location) : isWorkTab ? renderWorkScheduleView() : isTodoTab ? renderTodoView() : state.tab === 'finance' ? renderFinanceView() : renderPipelineView()}
+      ${isBookingTab ? renderBookingView(filteredArtists, location) : isWorkTab ? renderWorkScheduleView() : isTodoTab ? renderTodoView() : state.tab === 'finance' ? renderFinanceView() : state.tab === 'contracts' ? renderContractsView() : renderPipelineView()}
     </div>
   `;
 }
@@ -1871,6 +1886,284 @@ function injectFinanceCSS() {
   // CSS is already embedded in the <style> block — no dynamic injection needed.
   return;
 }
+
+// ============================================================
+// SECTION 8: CONTRACTS MODULE
+// 66 Verträge (hardcoded) + Firestore contractNotes (Notizen, Flags, Hidden)
+// ============================================================
+
+const CONTRACT_CATEGORY_COLOR = {
+  'Miete': '#a78bfa', 'Energie': '#eab308', 'Versicherung': '#60a5fa',
+  'Fahrzeug': '#22d3ee', 'Telekommunikation': '#22c55e', 'Marketing': '#ec4899',
+  'Software': '#818cf8', 'Buchhaltung': '#94a3b8', 'Sonstiges': '#64748b',
+  'Studio': '#f97316'
+};
+const CONTRACT_FLAG_META = {
+  'none':        { label: 'Normal',          color: '#475569', icon: '•'  },
+  'review':      { label: 'Zu prüfen',       color: '#f97316', icon: '🟠' },
+  'soon_cancel': { label: 'Baldige Kündigung', color: '#eab308', icon: '🟡' },
+  'cancelled':   { label: 'Gekündigt',       color: '#ef4444', icon: '🔴' }
+};
+
+function getContractNote(id) { return state.contractNotes[id] || null; }
+function effectiveStatus(c) {
+  const note = getContractNote(c.id);
+  if (note?.flag === 'cancelled') return 'gekuendigt';
+  return c.status;
+}
+function monthlyEquivalent(c) {
+  if (!c.amount) return 0;
+  if (c.frequency === 'monatlich') return c.amount;
+  if (c.frequency === 'vierteljährlich') return c.amount / 3;
+  if (c.frequency === 'jährlich') return c.amount / 12;
+  if (c.frequency === 'variabel') return c.amount;
+  return 0;
+}
+function fmtEur(n) { return (n || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'; }
+
+function visibleContracts() {
+  const f = state.contractFilter;
+  return CONTRACTS.filter(c => {
+    const note = getContractNote(c.id);
+    if (state.contractHideHidden && note?.hidden) return false;
+    if (f.category !== 'all' && c.category !== f.category) return false;
+    if (f.status !== 'all') {
+      const s = effectiveStatus(c);
+      if (f.status === 'flagged' && (!note || !note.flag || note.flag === 'none')) return false;
+      else if (f.status !== 'flagged' && s !== f.status) return false;
+    }
+    if (f.frequency !== 'all' && c.frequency !== f.frequency) return false;
+    if (f.search) {
+      const q = f.search.toLowerCase();
+      if (!(c.company + ' ' + c.description).toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function setContractFilter(key, val) { state.contractFilter[key] = val; render(); }
+function toggleContractHideHidden() { state.contractHideHidden = !state.contractHideHidden; render(); }
+
+async function saveContractNote(id, partial) {
+  const existing = state.contractNotes[id] || {};
+  const merged = { ...existing, ...partial, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+  try {
+    await db.collection('contractNotes').doc(id).set(merged, { merge: true });
+    toast('Gespeichert', 'success');
+  } catch (e) {
+    toast('Fehler beim Speichern: ' + e.message, 'error');
+  }
+}
+
+function showContractModal(id) {
+  const c = CONTRACTS.find(x => x.id === id);
+  if (!c) return;
+  const note = getContractNote(id) || {};
+  const html = `
+    <div class="modal-head">
+      <div>
+        <div style="font-size:16px;font-weight:700;color:var(--text)">${esc(c.company)}</div>
+        <div style="font-size:12px;color:var(--text-faint);margin-top:2px">${esc(c.description || '')}</div>
+      </div>
+      <button class="close-x" onclick="closeModal(this.closest('.overlay'))">×</button>
+    </div>
+    <div style="display:flex;gap:8px;margin:12px 0;font-size:11px;flex-wrap:wrap">
+      <span style="padding:3px 10px;border-radius:12px;background:${CONTRACT_CATEGORY_COLOR[c.category]}33;color:${CONTRACT_CATEGORY_COLOR[c.category]};font-weight:600">${c.category}</span>
+      <span style="padding:3px 10px;border-radius:12px;background:#1e293b;color:var(--text-dim)">${fmtEur(c.amount)} · ${c.frequency}</span>
+      <span style="padding:3px 10px;border-radius:12px;background:#1e293b;color:var(--text-dim)">~${fmtEur(monthlyEquivalent(c))} / Monat</span>
+    </div>
+    <div style="margin:14px 0">
+      <label style="display:block;font-size:11px;color:var(--text-dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">Status-Flag</label>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        ${Object.entries(CONTRACT_FLAG_META).map(([key, meta]) => `
+          <button onclick="saveContractNote('${id}', { flag: '${key}' })" class="ct-flag-btn ${(note.flag || 'none') === key ? 'active' : ''}" style="--flag-color:${meta.color}">
+            ${meta.icon} ${meta.label}
+          </button>
+        `).join('')}
+      </div>
+    </div>
+    <div style="margin:14px 0">
+      <label style="display:block;font-size:11px;color:var(--text-dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">Notiz</label>
+      <textarea id="ct-note-area" placeholder="z.B. Kündigung zum 30.09.2026 . verhandeln mit Anbieter . Alternative prüfen..." style="width:100%;min-height:80px;background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:8px;font-family:inherit;font-size:13px;resize:vertical">${esc(note.text || '')}</textarea>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:space-between;align-items:center;margin-top:16px;border-top:1px solid var(--border);padding-top:14px">
+      <button onclick="saveContractNote('${id}', { hidden: ${!note.hidden} }); closeModal(this.closest('.overlay'))" style="background:transparent;color:${note.hidden ? 'var(--green)' : 'var(--red)'};border:1px solid ${note.hidden ? 'var(--green)' : 'var(--red)'};padding:7px 14px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:12px">
+        ${note.hidden ? '👁  Wieder einblenden' : '🗑  Aus Übersicht ausblenden'}
+      </button>
+      <div style="display:flex;gap:8px">
+        <button onclick="closeModal(this.closest('.overlay'))" style="background:transparent;color:var(--text-dim);border:1px solid var(--border);padding:7px 14px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:12px">Abbrechen</button>
+        <button onclick="saveContractNote('${id}', { text: document.getElementById('ct-note-area').value }); closeModal(this.closest('.overlay'))" style="background:var(--accent);color:#000;border:none;padding:7px 18px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:700">Speichern</button>
+      </div>
+    </div>
+  `;
+  showModal(html, '560px');
+}
+
+function renderContractsView() {
+  const f = state.contractFilter;
+  const visible = visibleContracts();
+
+  const totalMonthly = visible.reduce((s, c) => {
+    if (effectiveStatus(c) === 'gekuendigt') return s;
+    return s + monthlyEquivalent(c);
+  }, 0);
+  const totalYearly = totalMonthly * 12;
+
+  const flagged = CONTRACTS.filter(c => { const n = getContractNote(c.id); return n?.flag && n.flag !== 'none'; });
+  const soonCancel = flagged.filter(c => getContractNote(c.id).flag === 'soon_cancel').length;
+  const cancelled = flagged.filter(c => getContractNote(c.id).flag === 'cancelled').length;
+  const review = flagged.filter(c => getContractNote(c.id).flag === 'review').length;
+  const hiddenCount = CONTRACTS.filter(c => getContractNote(c.id)?.hidden).length;
+
+  // KPIs
+  const kpis = `
+    <div class="ct-kpis">
+      <div class="ct-kpi"><div class="ct-kpi-label">Sichtbar</div><div class="ct-kpi-value">${visible.length} <span style="font-size:11px;color:var(--text-faint);font-weight:500">/ ${CONTRACTS.length}</span></div></div>
+      <div class="ct-kpi"><div class="ct-kpi-label">Monatlich</div><div class="ct-kpi-value" style="color:var(--accent)">${fmtEur(totalMonthly)}</div></div>
+      <div class="ct-kpi"><div class="ct-kpi-label">Jährlich</div><div class="ct-kpi-value" style="color:var(--accent-purple)">${fmtEur(totalYearly)}</div></div>
+      ${review > 0 ? `<div class="ct-kpi ct-kpi-btn" onclick="setContractFilter('status','flagged')"><div class="ct-kpi-label">🟠 Zu prüfen</div><div class="ct-kpi-value" style="color:#f97316">${review}</div></div>` : ''}
+      ${soonCancel > 0 ? `<div class="ct-kpi ct-kpi-btn" onclick="setContractFilter('status','flagged')"><div class="ct-kpi-label">🟡 Kündigung</div><div class="ct-kpi-value" style="color:#eab308">${soonCancel}</div></div>` : ''}
+      ${cancelled > 0 ? `<div class="ct-kpi ct-kpi-btn" onclick="setContractFilter('status','flagged')"><div class="ct-kpi-label">🔴 Gekündigt</div><div class="ct-kpi-value" style="color:var(--red)">${cancelled}</div></div>` : ''}
+    </div>
+  `;
+
+  // Category pills
+  const categories = [...new Set(CONTRACTS.map(c => c.category))].sort();
+  const catPills = `
+    <div class="ct-cats">
+      <button class="ct-pill ${f.category === 'all' ? 'active' : ''}" onclick="setContractFilter('category','all')">Alle</button>
+      ${categories.map(cat => `<button class="ct-pill ${f.category === cat ? 'active' : ''}" onclick="setContractFilter('category','${cat}')" style="--pill-color:${CONTRACT_CATEGORY_COLOR[cat]}">${cat}</button>`).join('')}
+    </div>
+  `;
+
+  // Filter row
+  const filterRow = `
+    <div class="ct-filters">
+      <select onchange="setContractFilter('status', this.value)">
+        <option value="all" ${f.status==='all'?'selected':''}>Alle Status</option>
+        <option value="aktiv" ${f.status==='aktiv'?'selected':''}>Aktiv</option>
+        <option value="umstellung" ${f.status==='umstellung'?'selected':''}>Umstellung</option>
+        <option value="flagged" ${f.status==='flagged'?'selected':''}>Markiert (Flag)</option>
+      </select>
+      <select onchange="setContractFilter('frequency', this.value)">
+        <option value="all" ${f.frequency==='all'?'selected':''}>Alle Frequenzen</option>
+        <option value="monatlich" ${f.frequency==='monatlich'?'selected':''}>Monatlich</option>
+        <option value="vierteljährlich" ${f.frequency==='vierteljährlich'?'selected':''}>Vierteljährlich</option>
+        <option value="jährlich" ${f.frequency==='jährlich'?'selected':''}>Jährlich</option>
+        <option value="variabel" ${f.frequency==='variabel'?'selected':''}>Variabel</option>
+      </select>
+      <input type="text" placeholder="🔍 Suche Firma oder Leistung..." value="${esc(f.search)}" oninput="setContractFilter('search', this.value)">
+      <label class="ct-toggle">
+        <input type="checkbox" ${state.contractHideHidden ? 'checked' : ''} onchange="toggleContractHideHidden()">
+        Ausgeblendete verstecken${hiddenCount > 0 ? ` (${hiddenCount})` : ''}
+      </label>
+    </div>
+  `;
+
+  // Sort: by effective status (cancelled last), then by monthly equivalent desc
+  const sorted = [...visible].sort((a, b) => {
+    const sa = effectiveStatus(a) === 'gekuendigt' ? 1 : 0;
+    const sb = effectiveStatus(b) === 'gekuendigt' ? 1 : 0;
+    if (sa !== sb) return sa - sb;
+    return monthlyEquivalent(b) - monthlyEquivalent(a);
+  });
+
+  // Rows
+  const rows = sorted.map(c => {
+    const note = getContractNote(c.id) || {};
+    const isCancelled = effectiveStatus(c) === 'gekuendigt';
+    const flag = note.flag || 'none';
+    const flagMeta = CONTRACT_FLAG_META[flag];
+    const catColor = CONTRACT_CATEGORY_COLOR[c.category] || '#64748b';
+    return `
+      <div class="ct-row ${isCancelled ? 'ct-row-cancelled' : ''}" onclick="showContractModal('${c.id}')">
+        <div class="ct-row-main">
+          <div class="ct-row-company">
+            ${flag !== 'none' ? `<span title="${flagMeta.label}" style="margin-right:6px">${flagMeta.icon}</span>` : ''}
+            ${esc(c.company)}
+          </div>
+          <div class="ct-row-desc">${esc(c.description || '—')}</div>
+          ${note.text ? `<div class="ct-row-note">📝 ${esc(note.text)}</div>` : ''}
+        </div>
+        <div class="ct-row-meta">
+          <span class="ct-badge ct-badge-cat" style="--cat-color:${catColor}">${c.category}</span>
+          <span class="ct-badge ct-badge-status ct-status-${c.status}">${c.status}</span>
+        </div>
+        <div class="ct-row-amount">
+          <div class="ct-amount">${fmtEur(c.amount)}</div>
+          <div class="ct-freq">${c.frequency}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  const emptyState = visible.length === 0
+    ? `<div style="text-align:center;padding:40px;color:var(--text-faint)">Keine Verträge für diese Filter. <button onclick="state.contractFilter={category:'all',status:'all',frequency:'all',search:''};render();" style="background:transparent;color:var(--accent);border:none;cursor:pointer;text-decoration:underline;margin-left:8px">Filter zurücksetzen</button></div>`
+    : '';
+
+  return `
+    <div class="contracts-module">
+      ${kpis}
+      ${catPills}
+      ${filterRow}
+      <div class="ct-list">${rows}${emptyState}</div>
+      <div style="margin-top:14px;color:var(--text-ghost);font-size:10px;text-align:center">
+        66 Verträge · Klick auf Zeile für Notiz/Flag/Ausblenden · Gekündigt-markierte werden nicht in den Summen gerechnet
+      </div>
+    </div>
+  `;
+}
+
+// Contracts CSS (injected into the document on first render)
+(function injectContractsCSS() {
+  const css = `
+    .contracts-module { padding: 4px 0 20px; }
+    .ct-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin-bottom: 14px; }
+    .ct-kpi { background: var(--bg-row-even); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; }
+    .ct-kpi-btn { cursor: pointer; transition: border-color .15s; }
+    .ct-kpi-btn:hover { border-color: var(--accent); }
+    .ct-kpi-label { color: var(--text-ghost); font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .ct-kpi-value { font-size: 18px; font-weight: 700; margin-top: 2px; color: var(--text); }
+    .ct-cats { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
+    .ct-pill { --pill-color: var(--accent); background: transparent; color: var(--text-faint); border: 1px solid var(--border); padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all .12s; }
+    .ct-pill:hover { color: var(--text); border-color: var(--text-ghost); }
+    .ct-pill.active { background: color-mix(in srgb, var(--pill-color) 18%, transparent); color: var(--pill-color); border-color: var(--pill-color); }
+    .ct-filters { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+    .ct-filters select, .ct-filters input { background: var(--bg-input); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; font-size: 12px; font-family: inherit; }
+    .ct-filters input { flex: 1; min-width: 180px; }
+    .ct-toggle { display: flex; align-items: center; gap: 6px; color: var(--text-dim); font-size: 11px; cursor: pointer; user-select: none; }
+    .ct-list { display: flex; flex-direction: column; gap: 4px; }
+    .ct-row { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; padding: 10px 12px; background: var(--bg-row-even); border: 1px solid var(--border); border-radius: 7px; cursor: pointer; transition: background .12s, border-color .12s; }
+    .ct-row:hover { background: var(--bg-hover); border-color: var(--text-ghost); }
+    .ct-row-cancelled { opacity: 0.5; }
+    .ct-row-cancelled .ct-row-company, .ct-row-cancelled .ct-amount { text-decoration: line-through; }
+    .ct-row-main { min-width: 0; }
+    .ct-row-company { font-weight: 600; color: var(--text); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ct-row-desc { color: var(--text-faint); font-size: 11px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ct-row-note { color: var(--yellow); font-size: 11px; margin-top: 4px; padding: 4px 8px; background: rgba(234,179,8,.08); border-left: 2px solid var(--yellow); border-radius: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ct-row-meta { display: flex; flex-direction: column; gap: 3px; align-items: flex-end; }
+    .ct-badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600; white-space: nowrap; }
+    .ct-badge-cat { background: color-mix(in srgb, var(--cat-color) 20%, transparent); color: var(--cat-color); border: 1px solid color-mix(in srgb, var(--cat-color) 40%, transparent); }
+    .ct-badge-status { border: 1px solid; }
+    .ct-status-aktiv { color: #22c55e; background: rgba(34,197,94,.15); border-color: rgba(34,197,94,.3); }
+    .ct-status-umstellung { color: #eab308; background: rgba(234,179,8,.15); border-color: rgba(234,179,8,.3); }
+    .ct-status-gekuendigt { color: #ef4444; background: rgba(239,68,68,.15); border-color: rgba(239,68,68,.3); }
+    .ct-row-amount { text-align: right; min-width: 100px; }
+    .ct-amount { font-family: 'DM Sans', monospace; font-weight: 700; font-size: 13px; color: var(--text); }
+    .ct-freq { font-size: 10px; color: var(--text-ghost); margin-top: 2px; }
+    .ct-flag-btn { --flag-color: #475569; background: transparent; color: var(--text-dim); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 11px; font-family: inherit; cursor: pointer; transition: all .12s; }
+    .ct-flag-btn:hover { border-color: var(--flag-color); color: var(--flag-color); }
+    .ct-flag-btn.active { background: color-mix(in srgb, var(--flag-color) 20%, transparent); color: var(--flag-color); border-color: var(--flag-color); }
+    .modal-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .close-x { background: transparent; color: var(--text-faint); border: none; font-size: 24px; cursor: pointer; line-height: 1; padding: 0 4px; }
+    .close-x:hover { color: var(--text); }
+  `;
+  const s = document.createElement('style');
+  s.textContent = css;
+  document.head.appendChild(s);
+})();
+
+const CONTRACTS = [{"id":"ac-accounting-controlling-gmbh-steuerberatung","company":"AC Accounting & Controlling GmbH","description":"Steuerberatung","category":"Buchhaltung","status":"aktiv","amount":675.0,"frequency":"monatlich","location":"Beide"},{"id":"american-express-europe-s-a-kreditkarte-business","company":"American Express Europe S.A.","description":"Kreditkarte Business","category":"Buchhaltung","status":"umstellung","amount":5307.46,"frequency":"monatlich","location":"Beide"},{"id":"aok-baden-w-rttemberg-sozialversicherungsbeitr-ge","company":"AOK Baden-Württemberg","description":"Sozialversicherungsbeiträge","category":"Buchhaltung","status":"aktiv","amount":1319.9,"frequency":"monatlich","location":"Beide"},{"id":"eins-energie-in-sachsen-gmbh-gas-vertrag-1-achern","company":"EINS ENERGIE IN SACHSEN GmbH","description":"Gas Vertrag 1 (Achern)","category":"Energie","status":"umstellung","amount":178.0,"frequency":"monatlich","location":"Beide"},{"id":"eins-energie-in-sachsen-gmbh-gas-vertrag-2-achern","company":"EINS ENERGIE IN SACHSEN GmbH","description":"Gas Vertrag 2 (Achern)","category":"Energie","status":"umstellung","amount":234.0,"frequency":"monatlich","location":"Beide"},{"id":"lichtblick-se-strom-vertrag-1-achern","company":"LichtBlick SE","description":"Strom Vertrag 1 (Achern)","category":"Energie","status":"umstellung","amount":61.0,"frequency":"monatlich","location":"Beide"},{"id":"lichtblick-se-strom-vertrag-2-achern","company":"LichtBlick SE","description":"Strom Vertrag 2 (Achern)","category":"Energie","status":"umstellung","amount":121.0,"frequency":"monatlich","location":"Beide"},{"id":"lichtblick-se-strom-vertrag-3-achern","company":"LichtBlick SE","description":"Strom Vertrag 3 (Achern)","category":"Energie","status":"umstellung","amount":147.0,"frequency":"monatlich","location":"Beide"},{"id":"respect-energy-gmbh-strom-weil-am-rhein","company":"Respect Energy GmbH","description":"Strom Weil am Rhein","category":"Energie","status":"aktiv","amount":320.0,"frequency":"monatlich","location":"Beide"},{"id":"autohaus-grethel-gmbh-co-kg-kfz-service-wartung","company":"Autohaus Grethel GmbH & Co.KG","description":"KFZ Service / Wartung","category":"Fahrzeug","status":"aktiv","amount":412.25,"frequency":"variabel","location":"Beide"},{"id":"bundeskasse-hauptzollamt-kfz-steuer-og-at-92","company":"Bundeskasse / Hauptzollamt","description":"Kfz-Steuer OG AT 92","category":"Fahrzeug","status":"aktiv","amount":468.63,"frequency":"jährlich","location":"Beide"},{"id":"sc-leasing-gmbh-santander-kfz-leasing-volvo-og-at-2022","company":"SC-LEASING GmbH (Santander)","description":"KFZ Leasing Volvo OG-AT 2022","category":"Fahrzeug","status":"aktiv","amount":262.04,"frequency":"monatlich","location":"Beide"},{"id":"vw-leasing-gmbh-kfz-leasing","company":"VW Leasing GmbH","description":"KFZ Leasing","category":"Fahrzeug","status":"umstellung","amount":868.7,"frequency":"monatlich","location":"Beide"},{"id":"creditreform-karlsruhe-reutlingen-bliss-gmbh-co-kg-wirtschaf","company":"Creditreform Karlsruhe-Reutlingen Bliss GmbH & Co. KG","description":"Wirtschaftsauskunftei Mitgliedschaft","category":"Marketing","status":"aktiv","amount":35.0,"frequency":"monatlich","location":"Beide"},{"id":"hitradio-ohr-radiowerbung","company":"HITRADIO OHR","description":"Radiowerbung","category":"Marketing","status":"aktiv","amount":1285.0,"frequency":"variabel","location":"Beide"},{"id":"meta-platforms-inc-facebook-instagram-ads","company":"Meta Platforms, Inc.","description":"Facebook/Instagram Ads","category":"Marketing","status":"aktiv","amount":800.0,"frequency":"monatlich","location":"Beide"},{"id":"sellwerk-gmbh-co-kg-online-marketing-verzeichnis","company":"Sellwerk GmbH & Co. KG","description":"Online-Marketing / Verzeichnis","category":"Marketing","status":"aktiv","amount":1068.62,"frequency":"variabel","location":"Beide"},{"id":"edeka-s-dwest-stiftung-co-kg-miete-studio-achern-werbegem","company":"EDEKA Südwest Stiftung & Co. KG","description":"Miete Studio Achern + Werbegemeinschaft + Werbefläche","category":"Miete","status":"aktiv","amount":6549.4,"frequency":"monatlich","location":"Beide"},{"id":"edeka-s-dwest-stiftung-co-kg-miete-studio-weil-am-rhein","company":"EDEKA Südwest Stiftung & Co. KG","description":"Miete Studio Weil am Rhein","category":"Miete","status":"aktiv","amount":5117.0,"frequency":"monatlich","location":"Beide"},{"id":"hc24-miete-wohnung-rheinpark-6-al","company":"HC24","description":"Miete Wohnung Rheinpark 6 + Alte Stadtgärtnerei 12","category":"Miete","status":"aktiv","amount":2915.0,"frequency":"monatlich","location":"Beide"},{"id":"schmid-und-blum-immobilien-gmbh-wohnung-wilhelm-schechter-st","company":"Schmid und Blum Immobilien GmbH","description":"Wohnung Wilhelm-Schechter-Str.","category":"Miete","status":"aktiv","amount":1095.0,"frequency":"monatlich","location":"Beide"},{"id":"stadt-achern-eigenbetrieb-stadtwerke-tiefgarage-karte-2-251-","company":"Stadt Achern Eigenbetrieb Stadtwerke","description":"Tiefgarage Karte 2.251 + Versorgung","category":"Miete","status":"aktiv","amount":82.13,"frequency":"monatlich","location":"Beide"},{"id":"stadt-achern-eigenbetrieb-stadtwerke-versorgung-weil-am-rhei","company":"Stadt Achern Eigenbetrieb Stadtwerke","description":"Versorgung Weil am Rhein Standort","category":"Miete","status":"aktiv","amount":86.39,"frequency":"monatlich","location":"Beide"},{"id":"canva-pty-limited-design-tool","company":"Canva Pty Limited","description":"Design-Tool","category":"Software","status":"aktiv","amount":32.0,"frequency":"monatlich","location":"Beide"},{"id":"haufe-service-center-gmbh-lexware-lexware-office-xl-buchhalt","company":"Haufe Service Center GmbH (Lexware)","description":"Lexware Office XL Buchhaltung","category":"Software","status":"aktiv","amount":19.57,"frequency":"monatlich","location":"Beide"},{"id":"hello-again-gmbh-loyalty-app-kundenbindung","company":"hello again GmbH","description":"Loyalty App / Kundenbindung","category":"Software","status":"umstellung","amount":823.27,"frequency":"monatlich","location":"Beide"},{"id":"hostinger-international-limited-webhosting","company":"Hostinger International Limited","description":"Webhosting","category":"Software","status":"aktiv","amount":35.69,"frequency":"monatlich","location":"Beide"},{"id":"nordsec-b-v-nordvpn-vpn","company":"nordsec b.v. (NordVPN)","description":"VPN","category":"Software","status":"aktiv","amount":15.46,"frequency":"monatlich","location":"Beide"},{"id":"notion-labs-inc-projektmanagement-notizen","company":"Notion Labs, Inc.","description":"Projektmanagement / Notizen","category":"Software","status":"umstellung","amount":139.83,"frequency":"monatlich","location":"Beide"},{"id":"shopify-international-limited-online-shop-artefact-gutschei","company":"Shopify International Limited","description":"Online-Shop (artefact-gutschein.com)","category":"Software","status":"aktiv","amount":35.58,"frequency":"monatlich","location":"Beide"},{"id":"socialwave-gmbh-wifi-marketing-bewertungssys","company":"Socialwave GmbH","description":"WiFi Marketing / Bewertungssystem","category":"Software","status":"aktiv","amount":1569.37,"frequency":"monatlich","location":"Beide"},{"id":"strato-gmbh-webhosting","company":"STRATO GmbH","description":"Webhosting","category":"Software","status":"aktiv","amount":13.0,"frequency":"monatlich","location":"Beide"},{"id":"strato-gmbh-webhosting-domains","company":"STRATO GmbH","description":"Webhosting / Domains","category":"Software","status":"aktiv","amount":75.62,"frequency":"monatlich","location":"Beide"},{"id":"superx-gmbh-superchat-whatsapp-business-api","company":"SuperX GmbH (Superchat)","description":"WhatsApp Business API","category":"Software","status":"aktiv","amount":328.44,"frequency":"monatlich","location":"Beide"},{"id":"db-vertrieb-gmbh-deutschlandticket-bahncard","company":"DB Vertrieb GmbH","description":"Deutschlandticket / BahnCard","category":"Sonstiges","status":"aktiv","amount":63.0,"frequency":"monatlich","location":"Beide"},{"id":"deutsche-post-ag-dhl-group-versand-gutscheine-produkte","company":"Deutsche Post AG / DHL Group","description":"Versand (Gutscheine, Produkte)","category":"Sonstiges","status":"aktiv","amount":600.0,"frequency":"monatlich","location":"Beide"},{"id":"rundfunk-ard-zdf-dradio-rundfunkbeitrag","company":"Rundfunk ARD, ZDF, DRadio","description":"Rundfunkbeitrag","category":"Sonstiges","status":"aktiv","amount":55.08,"frequency":"vierteljährlich","location":"Beide"},{"id":"kaffee-partner-gmbh-kaffeemaschine-leasing","company":"Kaffee Partner GmbH","description":"Kaffeemaschine Leasing","category":"Studio","status":"umstellung","amount":153.51,"frequency":"monatlich","location":"Beide"},{"id":"klarna-bank-ab-tattoo-supplies-killerinktatt","company":"Klarna Bank AB","description":"Tattoo-Supplies (killerinktattoo)","category":"Studio","status":"aktiv","amount":1129.55,"frequency":"variabel","location":"Beide"},{"id":"sumup-limited-kartenterminal","company":"SumUp Limited","description":"Kartenterminal","category":"Studio","status":"aktiv","amount":19.0,"frequency":"monatlich","location":"Beide"},{"id":"vk-bodyfit-gmbh-getr-nkeautomat-1","company":"VK BODYFIT GmbH","description":"Getränkeautomat 1","category":"Studio","status":"umstellung","amount":29.9,"frequency":"monatlich","location":"Beide"},{"id":"vk-bodyfit-gmbh-getr-nkeautomat-2","company":"VK BODYFIT GmbH","description":"Getränkeautomat 2","category":"Studio","status":"umstellung","amount":29.9,"frequency":"monatlich","location":"Beide"},{"id":"vk-bodyfit-gmbh-getr-nkeautomat-3","company":"VK BODYFIT GmbH","description":"Getränkeautomat 3","category":"Studio","status":"umstellung","amount":29.9,"frequency":"monatlich","location":"Beide"},{"id":"welltec-gmbh-wasserspender","company":"WellTEC GmbH","description":"Wasserspender","category":"Studio","status":"umstellung","amount":113.05,"frequency":"monatlich","location":"Beide"},{"id":"welltec-gmbh-wasserspender-hygiene-wartung","company":"WellTEC GmbH","description":"Wasserspender (Hygiene/Wartung)","category":"Studio","status":"umstellung","amount":46.41,"frequency":"monatlich","location":"Beide"},{"id":"vodafone-gmbh-mobilfunk","company":"Vodafone GmbH","description":"Mobilfunk","category":"Telekommunikation","status":"umstellung","amount":47.98,"frequency":"monatlich","location":"Beide"},{"id":"vodafone-gmbh-mobilfunk-2","company":"Vodafone GmbH","description":"Mobilfunk","category":"Telekommunikation","status":"umstellung","amount":44.99,"frequency":"monatlich","location":"Beide"},{"id":"vodafone-gmbh-mobilfunk-internet","company":"Vodafone GmbH","description":"Mobilfunk/Internet","category":"Telekommunikation","status":"umstellung","amount":94.64,"frequency":"monatlich","location":"Beide"},{"id":"vodafone-gmbh-mobilfunk-internet-weil-am-rhe","company":"Vodafone GmbH","description":"Mobilfunk/Internet Weil am Rhein","category":"Telekommunikation","status":"aktiv","amount":80.02,"frequency":"monatlich","location":"Beide"},{"id":"vodafone-west-gmbh-mobilfunk-internet-achern","company":"Vodafone West GmbH","description":"Mobilfunk/Internet Achern","category":"Telekommunikation","status":"umstellung","amount":23.99,"frequency":"monatlich","location":"Beide"},{"id":"vodafone-west-gmbh-mobilfunk-internet-achern-2","company":"Vodafone West GmbH","description":"Mobilfunk/Internet Achern","category":"Telekommunikation","status":"umstellung","amount":30.98,"frequency":"monatlich","location":"Beide"},{"id":"vodafone-west-gmbh-mobilfunk-internet-weil-am-rhe","company":"Vodafone West GmbH","description":"Mobilfunk/Internet Weil am Rhein","category":"Telekommunikation","status":"aktiv","amount":23.68,"frequency":"monatlich","location":"Beide"},{"id":"ergo-reiseversicherung-ag-reiseschutz","company":"ERGO Reiseversicherung AG","description":"Reiseschutz","category":"Versicherung","status":"aktiv","amount":1350.5,"frequency":"jährlich","location":"Beide"},{"id":"ergo-reiseversicherung-ag-reiseschutz-2","company":"ERGO Reiseversicherung AG","description":"Reiseschutz","category":"Versicherung","status":"aktiv","amount":777.0,"frequency":"jährlich","location":"Beide"},{"id":"ergo-reiseversicherung-ag-reiseschutz-3","company":"ERGO Reiseversicherung AG","description":"Reiseschutz","category":"Versicherung","status":"aktiv","amount":1350.5,"frequency":"jährlich","location":"Beide"},{"id":"ergo-versicherung-ag-rechtsschutzversicherung","company":"ERGO Versicherung AG","description":"Rechtsschutzversicherung","category":"Versicherung","status":"aktiv","amount":324.26,"frequency":"monatlich","location":"Beide"},{"id":"ergo-versicherung-ag-rechtsschutzversicherung-2","company":"ERGO Versicherung AG","description":"Rechtsschutzversicherung","category":"Versicherung","status":"aktiv","amount":337.65,"frequency":"monatlich","location":"Beide"},{"id":"ergo-versicherung-ag-unfallversicherung","company":"ERGO Versicherung AG","description":"Unfallversicherung","category":"Versicherung","status":"aktiv","amount":104.13,"frequency":"monatlich","location":"Beide"},{"id":"ergo-versicherung-ag-gesch-ftsinhaltsversicherung","company":"ERGO Versicherung AG","description":"Geschäftsinhaltsversicherung (Achern)","category":"Versicherung","status":"aktiv","amount":259.45,"frequency":"monatlich","location":"Beide"},{"id":"ergo-versicherung-ag-gesch-ftsinhaltsversicherung-2","company":"ERGO Versicherung AG","description":"Geschäftsinhaltsversicherung (Achern)","category":"Versicherung","status":"aktiv","amount":433.55,"frequency":"vierteljährlich","location":"Beide"},{"id":"ergo-versicherung-ag-cyberversicherung","company":"ERGO Versicherung AG","description":"Cyberversicherung","category":"Versicherung","status":"aktiv","amount":68.09,"frequency":"vierteljährlich","location":"Beide"},{"id":"ergo-versicherung-ag-kfz-versicherung-og-at-92","company":"ERGO Versicherung AG","description":"KFZ-Versicherung OG-AT-92","category":"Versicherung","status":"aktiv","amount":417.44,"frequency":"monatlich","location":"Beide"},{"id":"ergo-versicherung-ag-kfz-versicherung-og-at-2022","company":"ERGO Versicherung AG","description":"KFZ-Versicherung OG-AT-2022","category":"Versicherung","status":"aktiv","amount":223.8,"frequency":"monatlich","location":"Beide"},{"id":"ergo-vorsorge-lv-ag-lebensversicherung-weck-rapha","company":"ERGO Vorsorge LV AG","description":"Lebensversicherung Weck, Raphael","category":"Versicherung","status":"aktiv","amount":223.85,"frequency":"monatlich","location":"Beide"},{"id":"ergo-vorsorge-lv-ag-lebensversicherung-winheim-be","company":"ERGO Vorsorge LV AG","description":"Lebensversicherung Winheim, Benjamin","category":"Versicherung","status":"aktiv","amount":223.85,"frequency":"monatlich","location":"Beide"},{"id":"signal-iduna-gruppe-gewerbliche-haftpflichtversich","company":"SIGNAL IDUNA Gruppe","description":"Gewerbliche Haftpflichtversicherung","category":"Versicherung","status":"umstellung","amount":54.06,"frequency":"monatlich","location":"Beide"}];
 
 </script>
 </body>

@@ -1,0 +1,662 @@
+[
+  {
+    "id": "ac-accounting-controlling-gmbh-steuerberatung",
+    "company": "AC Accounting & Controlling GmbH",
+    "description": "Steuerberatung",
+    "category": "Buchhaltung",
+    "status": "aktiv",
+    "amount": 675.0,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "american-express-europe-s-a-kreditkarte-business",
+    "company": "American Express Europe S.A.",
+    "description": "Kreditkarte Business",
+    "category": "Buchhaltung",
+    "status": "umstellung",
+    "amount": 5307.46,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "aok-baden-w-rttemberg-sozialversicherungsbeitr-ge",
+    "company": "AOK Baden-Württemberg",
+    "description": "Sozialversicherungsbeiträge",
+    "category": "Buchhaltung",
+    "status": "aktiv",
+    "amount": 1319.9,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "eins-energie-in-sachsen-gmbh-gas-vertrag-1-achern",
+    "company": "EINS ENERGIE IN SACHSEN GmbH",
+    "description": "Gas Vertrag 1 (Achern)",
+    "category": "Energie",
+    "status": "umstellung",
+    "amount": 178.0,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "eins-energie-in-sachsen-gmbh-gas-vertrag-2-achern",
+    "company": "EINS ENERGIE IN SACHSEN GmbH",
+    "description": "Gas Vertrag 2 (Achern)",
+    "category": "Energie",
+    "status": "umstellung",
+    "amount": 234.0,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "lichtblick-se-strom-vertrag-1-achern",
+    "company": "LichtBlick SE",
+    "description": "Strom Vertrag 1 (Achern)",
+    "category": "Energie",
+    "status": "umstellung",
+    "amount": 61.0,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "lichtblick-se-strom-vertrag-2-achern",
+    "company": "LichtBlick SE",
+    "description": "Strom Vertrag 2 (Achern)",
+    "category": "Energie",
+    "status": "umstellung",
+    "amount": 121.0,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "lichtblick-se-strom-vertrag-3-achern",
+    "company": "LichtBlick SE",
+    "description": "Strom Vertrag 3 (Achern)",
+    "category": "Energie",
+    "status": "umstellung",
+    "amount": 147.0,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "respect-energy-gmbh-strom-weil-am-rhein",
+    "company": "Respect Energy GmbH",
+    "description": "Strom Weil am Rhein",
+    "category": "Energie",
+    "status": "aktiv",
+    "amount": 320.0,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "autohaus-grethel-gmbh-co-kg-kfz-service-wartung",
+    "company": "Autohaus Grethel GmbH & Co.KG",
+    "description": "KFZ Service / Wartung",
+    "category": "Fahrzeug",
+    "status": "aktiv",
+    "amount": 412.25,
+    "frequency": "variabel",
+    "location": "Beide"
+  },
+  {
+    "id": "bundeskasse-hauptzollamt-kfz-steuer-og-at-92",
+    "company": "Bundeskasse / Hauptzollamt",
+    "description": "Kfz-Steuer OG AT 92",
+    "category": "Fahrzeug",
+    "status": "aktiv",
+    "amount": 468.63,
+    "frequency": "jährlich",
+    "location": "Beide"
+  },
+  {
+    "id": "sc-leasing-gmbh-santander-kfz-leasing-volvo-og-at-2022",
+    "company": "SC-LEASING GmbH (Santander)",
+    "description": "KFZ Leasing Volvo OG-AT 2022",
+    "category": "Fahrzeug",
+    "status": "aktiv",
+    "amount": 262.04,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "vw-leasing-gmbh-kfz-leasing",
+    "company": "VW Leasing GmbH",
+    "description": "KFZ Leasing",
+    "category": "Fahrzeug",
+    "status": "umstellung",
+    "amount": 868.7,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "creditreform-karlsruhe-reutlingen-bliss-gmbh-co-kg-wirtschaf",
+    "company": "Creditreform Karlsruhe-Reutlingen Bliss GmbH & Co. KG",
+    "description": "Wirtschaftsauskunftei Mitgliedschaft",
+    "category": "Marketing",
+    "status": "aktiv",
+    "amount": 35.0,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "hitradio-ohr-radiowerbung",
+    "company": "HITRADIO OHR",
+    "description": "Radiowerbung",
+    "category": "Marketing",
+    "status": "aktiv",
+    "amount": 1285.0,
+    "frequency": "variabel",
+    "location": "Beide"
+  },
+  {
+    "id": "meta-platforms-inc-facebook-instagram-ads",
+    "company": "Meta Platforms, Inc.",
+    "description": "Facebook/Instagram Ads",
+    "category": "Marketing",
+    "status": "aktiv",
+    "amount": 800.0,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "sellwerk-gmbh-co-kg-online-marketing-verzeichnis",
+    "company": "Sellwerk GmbH & Co. KG",
+    "description": "Online-Marketing / Verzeichnis",
+    "category": "Marketing",
+    "status": "aktiv",
+    "amount": 1068.62,
+    "frequency": "variabel",
+    "location": "Beide"
+  },
+  {
+    "id": "edeka-s-dwest-stiftung-co-kg-miete-studio-achern-werbegem",
+    "company": "EDEKA Südwest Stiftung & Co. KG",
+    "description": "Miete Studio Achern + Werbegemeinschaft + Werbefläche",
+    "category": "Miete",
+    "status": "aktiv",
+    "amount": 6549.4,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "edeka-s-dwest-stiftung-co-kg-miete-studio-weil-am-rhein",
+    "company": "EDEKA Südwest Stiftung & Co. KG",
+    "description": "Miete Studio Weil am Rhein",
+    "category": "Miete",
+    "status": "aktiv",
+    "amount": 5117.0,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "hc24-miete-wohnung-rheinpark-6-al",
+    "company": "HC24",
+    "description": "Miete Wohnung Rheinpark 6 + Alte Stadtgärtnerei 12",
+    "category": "Miete",
+    "status": "aktiv",
+    "amount": 2915.0,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "schmid-und-blum-immobilien-gmbh-wohnung-wilhelm-schechter-st",
+    "company": "Schmid und Blum Immobilien GmbH",
+    "description": "Wohnung Wilhelm-Schechter-Str.",
+    "category": "Miete",
+    "status": "aktiv",
+    "amount": 1095.0,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "stadt-achern-eigenbetrieb-stadtwerke-tiefgarage-karte-2-251-",
+    "company": "Stadt Achern Eigenbetrieb Stadtwerke",
+    "description": "Tiefgarage Karte 2.251 + Versorgung",
+    "category": "Miete",
+    "status": "aktiv",
+    "amount": 82.13,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "stadt-achern-eigenbetrieb-stadtwerke-versorgung-weil-am-rhei",
+    "company": "Stadt Achern Eigenbetrieb Stadtwerke",
+    "description": "Versorgung Weil am Rhein Standort",
+    "category": "Miete",
+    "status": "aktiv",
+    "amount": 86.39,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "canva-pty-limited-design-tool",
+    "company": "Canva Pty Limited",
+    "description": "Design-Tool",
+    "category": "Software",
+    "status": "aktiv",
+    "amount": 32.0,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "haufe-service-center-gmbh-lexware-lexware-office-xl-buchhalt",
+    "company": "Haufe Service Center GmbH (Lexware)",
+    "description": "Lexware Office XL Buchhaltung",
+    "category": "Software",
+    "status": "aktiv",
+    "amount": 19.57,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "hello-again-gmbh-loyalty-app-kundenbindung",
+    "company": "hello again GmbH",
+    "description": "Loyalty App / Kundenbindung",
+    "category": "Software",
+    "status": "umstellung",
+    "amount": 823.27,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "hostinger-international-limited-webhosting",
+    "company": "Hostinger International Limited",
+    "description": "Webhosting",
+    "category": "Software",
+    "status": "aktiv",
+    "amount": 35.69,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "nordsec-b-v-nordvpn-vpn",
+    "company": "nordsec b.v. (NordVPN)",
+    "description": "VPN",
+    "category": "Software",
+    "status": "aktiv",
+    "amount": 15.46,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "notion-labs-inc-projektmanagement-notizen",
+    "company": "Notion Labs, Inc.",
+    "description": "Projektmanagement / Notizen",
+    "category": "Software",
+    "status": "umstellung",
+    "amount": 139.83,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "shopify-international-limited-online-shop-artefact-gutschei",
+    "company": "Shopify International Limited",
+    "description": "Online-Shop (artefact-gutschein.com)",
+    "category": "Software",
+    "status": "aktiv",
+    "amount": 35.58,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "socialwave-gmbh-wifi-marketing-bewertungssys",
+    "company": "Socialwave GmbH",
+    "description": "WiFi Marketing / Bewertungssystem",
+    "category": "Software",
+    "status": "aktiv",
+    "amount": 1569.37,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "strato-gmbh-webhosting",
+    "company": "STRATO GmbH",
+    "description": "Webhosting",
+    "category": "Software",
+    "status": "aktiv",
+    "amount": 13.0,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "strato-gmbh-webhosting-domains",
+    "company": "STRATO GmbH",
+    "description": "Webhosting / Domains",
+    "category": "Software",
+    "status": "aktiv",
+    "amount": 75.62,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "superx-gmbh-superchat-whatsapp-business-api",
+    "company": "SuperX GmbH (Superchat)",
+    "description": "WhatsApp Business API",
+    "category": "Software",
+    "status": "aktiv",
+    "amount": 328.44,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "db-vertrieb-gmbh-deutschlandticket-bahncard",
+    "company": "DB Vertrieb GmbH",
+    "description": "Deutschlandticket / BahnCard",
+    "category": "Sonstiges",
+    "status": "aktiv",
+    "amount": 63.0,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "deutsche-post-ag-dhl-group-versand-gutscheine-produkte",
+    "company": "Deutsche Post AG / DHL Group",
+    "description": "Versand (Gutscheine, Produkte)",
+    "category": "Sonstiges",
+    "status": "aktiv",
+    "amount": 600.0,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "rundfunk-ard-zdf-dradio-rundfunkbeitrag",
+    "company": "Rundfunk ARD, ZDF, DRadio",
+    "description": "Rundfunkbeitrag",
+    "category": "Sonstiges",
+    "status": "aktiv",
+    "amount": 55.08,
+    "frequency": "vierteljährlich",
+    "location": "Beide"
+  },
+  {
+    "id": "kaffee-partner-gmbh-kaffeemaschine-leasing",
+    "company": "Kaffee Partner GmbH",
+    "description": "Kaffeemaschine Leasing",
+    "category": "Studio",
+    "status": "umstellung",
+    "amount": 153.51,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "klarna-bank-ab-tattoo-supplies-killerinktatt",
+    "company": "Klarna Bank AB",
+    "description": "Tattoo-Supplies (killerinktattoo)",
+    "category": "Studio",
+    "status": "aktiv",
+    "amount": 1129.55,
+    "frequency": "variabel",
+    "location": "Beide"
+  },
+  {
+    "id": "sumup-limited-kartenterminal",
+    "company": "SumUp Limited",
+    "description": "Kartenterminal",
+    "category": "Studio",
+    "status": "aktiv",
+    "amount": 19.0,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "vk-bodyfit-gmbh-getr-nkeautomat-1",
+    "company": "VK BODYFIT GmbH",
+    "description": "Getränkeautomat 1",
+    "category": "Studio",
+    "status": "umstellung",
+    "amount": 29.9,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "vk-bodyfit-gmbh-getr-nkeautomat-2",
+    "company": "VK BODYFIT GmbH",
+    "description": "Getränkeautomat 2",
+    "category": "Studio",
+    "status": "umstellung",
+    "amount": 29.9,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "vk-bodyfit-gmbh-getr-nkeautomat-3",
+    "company": "VK BODYFIT GmbH",
+    "description": "Getränkeautomat 3",
+    "category": "Studio",
+    "status": "umstellung",
+    "amount": 29.9,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "welltec-gmbh-wasserspender",
+    "company": "WellTEC GmbH",
+    "description": "Wasserspender",
+    "category": "Studio",
+    "status": "umstellung",
+    "amount": 113.05,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "welltec-gmbh-wasserspender-hygiene-wartung",
+    "company": "WellTEC GmbH",
+    "description": "Wasserspender (Hygiene/Wartung)",
+    "category": "Studio",
+    "status": "umstellung",
+    "amount": 46.41,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "vodafone-gmbh-mobilfunk",
+    "company": "Vodafone GmbH",
+    "description": "Mobilfunk",
+    "category": "Telekommunikation",
+    "status": "umstellung",
+    "amount": 47.98,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "vodafone-gmbh-mobilfunk-2",
+    "company": "Vodafone GmbH",
+    "description": "Mobilfunk",
+    "category": "Telekommunikation",
+    "status": "umstellung",
+    "amount": 44.99,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "vodafone-gmbh-mobilfunk-internet",
+    "company": "Vodafone GmbH",
+    "description": "Mobilfunk/Internet",
+    "category": "Telekommunikation",
+    "status": "umstellung",
+    "amount": 94.64,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "vodafone-gmbh-mobilfunk-internet-weil-am-rhe",
+    "company": "Vodafone GmbH",
+    "description": "Mobilfunk/Internet Weil am Rhein",
+    "category": "Telekommunikation",
+    "status": "aktiv",
+    "amount": 80.02,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "vodafone-west-gmbh-mobilfunk-internet-achern",
+    "company": "Vodafone West GmbH",
+    "description": "Mobilfunk/Internet Achern",
+    "category": "Telekommunikation",
+    "status": "umstellung",
+    "amount": 23.99,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "vodafone-west-gmbh-mobilfunk-internet-achern-2",
+    "company": "Vodafone West GmbH",
+    "description": "Mobilfunk/Internet Achern",
+    "category": "Telekommunikation",
+    "status": "umstellung",
+    "amount": 30.98,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "vodafone-west-gmbh-mobilfunk-internet-weil-am-rhe",
+    "company": "Vodafone West GmbH",
+    "description": "Mobilfunk/Internet Weil am Rhein",
+    "category": "Telekommunikation",
+    "status": "aktiv",
+    "amount": 23.68,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "ergo-reiseversicherung-ag-reiseschutz",
+    "company": "ERGO Reiseversicherung AG",
+    "description": "Reiseschutz",
+    "category": "Versicherung",
+    "status": "aktiv",
+    "amount": 1350.5,
+    "frequency": "jährlich",
+    "location": "Beide"
+  },
+  {
+    "id": "ergo-reiseversicherung-ag-reiseschutz-2",
+    "company": "ERGO Reiseversicherung AG",
+    "description": "Reiseschutz",
+    "category": "Versicherung",
+    "status": "aktiv",
+    "amount": 777.0,
+    "frequency": "jährlich",
+    "location": "Beide"
+  },
+  {
+    "id": "ergo-reiseversicherung-ag-reiseschutz-3",
+    "company": "ERGO Reiseversicherung AG",
+    "description": "Reiseschutz",
+    "category": "Versicherung",
+    "status": "aktiv",
+    "amount": 1350.5,
+    "frequency": "jährlich",
+    "location": "Beide"
+  },
+  {
+    "id": "ergo-versicherung-ag-rechtsschutzversicherung",
+    "company": "ERGO Versicherung AG",
+    "description": "Rechtsschutzversicherung",
+    "category": "Versicherung",
+    "status": "aktiv",
+    "amount": 324.26,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "ergo-versicherung-ag-rechtsschutzversicherung-2",
+    "company": "ERGO Versicherung AG",
+    "description": "Rechtsschutzversicherung",
+    "category": "Versicherung",
+    "status": "aktiv",
+    "amount": 337.65,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "ergo-versicherung-ag-unfallversicherung",
+    "company": "ERGO Versicherung AG",
+    "description": "Unfallversicherung",
+    "category": "Versicherung",
+    "status": "aktiv",
+    "amount": 104.13,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "ergo-versicherung-ag-gesch-ftsinhaltsversicherung",
+    "company": "ERGO Versicherung AG",
+    "description": "Geschäftsinhaltsversicherung (Achern)",
+    "category": "Versicherung",
+    "status": "aktiv",
+    "amount": 259.45,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "ergo-versicherung-ag-gesch-ftsinhaltsversicherung-2",
+    "company": "ERGO Versicherung AG",
+    "description": "Geschäftsinhaltsversicherung (Achern)",
+    "category": "Versicherung",
+    "status": "aktiv",
+    "amount": 433.55,
+    "frequency": "vierteljährlich",
+    "location": "Beide"
+  },
+  {
+    "id": "ergo-versicherung-ag-cyberversicherung",
+    "company": "ERGO Versicherung AG",
+    "description": "Cyberversicherung",
+    "category": "Versicherung",
+    "status": "aktiv",
+    "amount": 68.09,
+    "frequency": "vierteljährlich",
+    "location": "Beide"
+  },
+  {
+    "id": "ergo-versicherung-ag-kfz-versicherung-og-at-92",
+    "company": "ERGO Versicherung AG",
+    "description": "KFZ-Versicherung OG-AT-92",
+    "category": "Versicherung",
+    "status": "aktiv",
+    "amount": 417.44,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "ergo-versicherung-ag-kfz-versicherung-og-at-2022",
+    "company": "ERGO Versicherung AG",
+    "description": "KFZ-Versicherung OG-AT-2022",
+    "category": "Versicherung",
+    "status": "aktiv",
+    "amount": 223.8,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "ergo-vorsorge-lv-ag-lebensversicherung-weck-rapha",
+    "company": "ERGO Vorsorge LV AG",
+    "description": "Lebensversicherung Weck, Raphael",
+    "category": "Versicherung",
+    "status": "aktiv",
+    "amount": 223.85,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "ergo-vorsorge-lv-ag-lebensversicherung-winheim-be",
+    "company": "ERGO Vorsorge LV AG",
+    "description": "Lebensversicherung Winheim, Benjamin",
+    "category": "Versicherung",
+    "status": "aktiv",
+    "amount": 223.85,
+    "frequency": "monatlich",
+    "location": "Beide"
+  },
+  {
+    "id": "signal-iduna-gruppe-gewerbliche-haftpflichtversich",
+    "company": "SIGNAL IDUNA Gruppe",
+    "description": "Gewerbliche Haftpflichtversicherung",
+    "category": "Versicherung",
+    "status": "umstellung",
+    "amount": 54.06,
+    "frequency": "monatlich",
+    "location": "Beide"
+  }
+]
